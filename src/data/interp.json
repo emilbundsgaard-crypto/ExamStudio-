@@ -1,0 +1,2130 @@
+[
+{
+"id": "REST-T",
+"case": "restaurant",
+"title": "Restaurant sales and temperature",
+"data": "Larry's Commissary, 312 trading days in 2018 (salesData + weatherData + gameData)",
+"y": {
+"name": "Daily sales",
+"unit": "total netTotal for the day (USD)"
+},
+"x": {
+"name": "Max temperature",
+"unit": "tmax (\u00b0F)",
+"range": [
+28.94,
+104.0
+]
+},
+"d": {
+"name": "Game day",
+"desc": "university football game that day",
+"ref": "no game (reference group)",
+"one": "game day"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Max temperature",
+"Game day"
+],
+"b": [
+2684.5667407452256,
+7.312964438337727,
+1421.3360058987869
+],
+"se": [
+197.19578755883944,
+2.7211519484171354,
+284.1913674392269
+],
+"p": [
+2.187149879273136e-33,
+0.007589938462436558,
+9.564664622615248e-07
+],
+"r2": 0.09589687102208055,
+"n": 312,
+"show": [
+2685.0,
+7.313,
+1421.0
+],
+"pshow": [
+0.0,
+0.008,
+0.0
+]
+},
+"prompt": "Predict daily sales for an observation with max temperature = 60 that is in the group \"game day\".",
+"equation": "Predicted daily sales = b\u2080 + b\u2081[Max temperature] + b\u2082[Game day]",
+"checks": [
+{
+"label": "Predicted daily sales",
+"value": 4544.78,
+"tol": 9.08956
+}
+],
+"answer": [
+"Substitute Max temperature = 60 and Game day = 1 into the model:",
+"2,685.0 + (7.313 \u00d7 60) + (1,421.0 \u00d7 1) = 4,544.7800.",
+"Max temperature = 60 is inside the observed range (28.94 to 104), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Max temperature"
+],
+"b": [
+2725.2924349803784,
+7.579687651878784
+],
+"se": [
+204.51638336820935,
+2.824037326982624
+],
+"p": [
+2.4442913938028625e-32,
+0.007665852088456388
+],
+"r2": 0.022710326050421004,
+"n": 312,
+"show": [
+2725.0,
+7.58
+],
+"pshow": [
+0.0,
+0.008
+]
+},
+"prompt": "Interpret the coefficient on max temperature. By how much does predicted daily sales change when max temperature increases by 10?",
+"equation": "Predicted daily sales = a\u2080 + a\u2081[Max temperature]",
+"checks": [
+{
+"label": "Change for +10 max temperature",
+"value": 75.8,
+"tol": 0.15159999999999998
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 7.580: each one-unit increase in max temperature (tmax (\u00b0F)) is associated with an increase of 7.580 in predicted daily sales (total netTotal for the day (USD)).",
+"So +10 \u2192 +75.8000.",
+"p = 0.008 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Max temperature",
+"Max temperature\u00b2"
+],
+"b": [
+934.8395272121069,
+64.46237943726288,
+-0.41074929585818204
+],
+"se": [
+724.4333740692191,
+22.2726303401832,
+0.15955560298717347
+],
+"p": [
+0.19786187358379928,
+0.004071220858131088,
+0.010508823644027929
+],
+"r2": 0.043230377004225606,
+"n": 312,
+"show": [
+934.8,
+64.46,
+-0.4107
+],
+"pshow": [
+0.198,
+0.004,
+0.011
+]
+},
+"prompt": "What do you learn from the p-value of the max temperature-squared term?",
+"equation": "Predicted daily sales = c\u2080 + c\u2081[Max temperature] + c\u2082[Max temperature]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "inverted U (concave)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = -0.4107, p = 0.011.",
+"p < 0.05: there is statistically significant curvature \u2013 the effect of max temperature on daily sales is not constant but weakens as max temperature increases.",
+"A negative c\u2082 means a inverted-U (concave) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Max temperature",
+"Game day",
+"Max temperature\u00d7Game day"
+],
+"b": [
+2710.1698107317984,
+6.9433112496024565,
+437.49135226794135,
+13.8074868788129
+],
+"se": [
+199.76471513532937,
+2.759798819415458,
+1235.025805289565,
+16.866987212390715
+],
+"p": [
+3.4259938318238344e-33,
+0.012382060683479275,
+0.7234039625143446,
+0.4136417785394135
+],
+"r2": 0.09785967814304997,
+"n": 312,
+"show": [
+2710.0,
+6.943,
+437.5,
+13.81
+],
+"pshow": [
+0.0,
+0.012,
+0.723,
+0.414
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, max temperature, game day, and max temperature \u00d7 game day.",
+"equation": "Predicted daily sales = d\u2080 + d\u2081[Max temperature] + d\u2082[Game day] + d\u2083([Max temperature]\u00d7[Game day])",
+"checks": [
+{
+"label": "Slope of max temperature for the group \"game day\"",
+"value": 20.753,
+"tol": 0.041506
+},
+{
+"label": "Predicted difference (game day minus no game) at max temperature = 60",
+"value": 1266.1,
+"tol": 2.5322
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 2,710.0: predicted daily sales for the reference group (no game) when max temperature = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 6.943: slope of max temperature for the reference group.",
+"d\u2082 = 437.5: difference between game day and the reference group when max temperature = 0.",
+"d\u2083 = 13.810 (p = 0.414): how much the slope differs for game day. Their slope is d\u2081 + d\u2083 = 20.7530. Not significant at 5% \u2013 no evidence that the slopes differ.",
+"At max temperature = 60 the predicted gap is d\u2082 + d\u2083\u00d760 = 1,266.1000."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "REST-L",
+"case": "restaurant",
+"title": "Restaurant sales vs. last year",
+"data": "Larry's Commissary daily sales; netTotal_364 = sales on the same weekday 52 weeks earlier",
+"y": {
+"name": "Daily sales",
+"unit": "total netTotal for the day (USD)"
+},
+"x": {
+"name": "Sales a year ago",
+"unit": "netTotal_364 summed per day (USD)",
+"range": [
+0.0,
+7557.0
+]
+},
+"d": {
+"name": "Game day",
+"desc": "university football game that day",
+"ref": "no game (reference group)",
+"one": "game day"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Sales a year ago",
+"Game day"
+],
+"b": [
+1042.4278513730637,
+0.6201681517557797,
+440.56111888242157
+],
+"se": [
+129.4549691126168,
+0.035387742292283045,
+211.3398563280064
+],
+"p": [
+1.7739097658183446e-14,
+3.17171870160931e-48,
+0.03792561247135012
+],
+"r2": 0.5359735408942152,
+"n": 312,
+"show": [
+1042.0,
+0.6202,
+440.6
+],
+"pshow": [
+0.0,
+0.0,
+0.038
+]
+},
+"prompt": "Predict daily sales for an observation with sales a year ago = 3500 that is in the group \"game day\".",
+"equation": "Predicted daily sales = b\u2080 + b\u2081[Sales a year ago] + b\u2082[Game day]",
+"checks": [
+{
+"label": "Predicted daily sales",
+"value": 3653.2999999999997,
+"tol": 7.3065999999999995
+}
+],
+"answer": [
+"Substitute Sales a year ago = 3500 and Game day = 1 into the model:",
+"1,042.0 + (0.6202 \u00d7 3500) + (440.6 \u00d7 1) = 3,653.3000.",
+"Sales a year ago = 3500 is inside the observed range (0 to 7,557), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Sales a year ago"
+],
+"b": [
+990.7439864284714,
+0.6400010856726694
+],
+"se": [
+127.74240438882015,
+0.03426827518096455
+],
+"p": [
+1.2754174563460552e-13,
+1.1142629936456822e-52
+],
+"r2": 0.5294477405454081,
+"n": 312,
+"show": [
+990.7,
+0.64
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on sales a year ago. By how much does predicted daily sales change when sales a year ago increases by 100?",
+"equation": "Predicted daily sales = a\u2080 + a\u2081[Sales a year ago]",
+"checks": [
+{
+"label": "Change for +100 sales a year ago",
+"value": 64.0,
+"tol": 0.128
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 0.64: each one-unit increase in sales a year ago (netTotal_364 summed per day (USD)) is associated with an increase of 0.64 in predicted daily sales (total netTotal for the day (USD)).",
+"So +100 \u2192 +64.0000.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Sales a year ago",
+"Sales a year ago\u00b2"
+],
+"b": [
+781.2576688497468,
+0.7671062771954555,
+-1.722737522935015e-05
+],
+"se": [
+255.37806484999237,
+0.13847308293695357,
+1.8184157448622683e-05
+],
+"p": [
+0.002413513591534876,
+6.488011340474496e-08,
+0.3441835591814618
+],
+"r2": 0.5308105702787833,
+"n": 312,
+"show": [
+781.3,
+0.7671,
+-1.723e-05
+],
+"pshow": [
+0.002,
+0.0,
+0.344
+]
+},
+"prompt": "What do you learn from the p-value of the sales a year ago-squared term?",
+"equation": "Predicted daily sales = c\u2080 + c\u2081[Sales a year ago] + c\u2082[Sales a year ago]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "inverted U (concave)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = -1.723e-05, p = 0.344.",
+"p \u2265 0.05: no statistically significant curvature; the data do not support a non-linear relationship beyond the linear term.",
+"A negative c\u2082 means a inverted-U (concave) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Sales a year ago",
+"Game day",
+"Sales a year ago\u00d7Game day"
+],
+"b": [
+1044.4154790998823,
+0.6195944603553314,
+387.0296256127375,
+0.010739671587301908
+],
+"se": [
+132.9051750399787,
+0.036431272059606494,
+813.7022734805142,
+0.1576270204032454
+],
+"p": [
+6.568923292368757e-14,
+3.3308810365845337e-46,
+0.6346677952776724,
+0.9457236181416993
+],
+"r2": 0.535980534580586,
+"n": 312,
+"show": [
+1044.0,
+0.6196,
+387.0,
+0.01074
+],
+"pshow": [
+0.0,
+0.0,
+0.635,
+0.946
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, sales a year ago, game day, and sales a year ago \u00d7 game day.",
+"equation": "Predicted daily sales = d\u2080 + d\u2081[Sales a year ago] + d\u2082[Game day] + d\u2083([Sales a year ago]\u00d7[Game day])",
+"checks": [
+{
+"label": "Slope of sales a year ago for the group \"game day\"",
+"value": 0.63034,
+"tol": 0.0012606800000000001
+},
+{
+"label": "Predicted difference (game day minus no game) at sales a year ago = 3500",
+"value": 424.59,
+"tol": 0.8491799999999999
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 1,044.0: predicted daily sales for the reference group (no game) when sales a year ago = 0.",
+"d\u2081 = 0.6196: slope of sales a year ago for the reference group.",
+"d\u2082 = 387.0: difference between game day and the reference group when sales a year ago = 0.",
+"d\u2083 = 0.01074 (p = 0.946): how much the slope differs for game day. Their slope is d\u2081 + d\u2083 = 0.6303. Not significant at 5% \u2013 no evidence that the slopes differ.",
+"At sales a year ago = 3500 the predicted gap is d\u2082 + d\u2083\u00d73500 = 424.5900."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "PAY-H",
+"case": "integrate",
+"title": "IntegrateCo regular pay and hours",
+"data": "IntegrateCo 2015 payroll rows with regular hours > 0 (one row per employee, pay date and job)",
+"y": {
+"name": "Regular pay",
+"unit": "Reg_Pay for the row (USD)"
+},
+"x": {
+"name": "Regular hours",
+"unit": "Reg_Hrs",
+"range": [
+0.25,
+51.0
+]
+},
+"d": {
+"name": "S department",
+"desc": "Job code contains the S department identifier",
+"ref": "other jobs (reference group)",
+"one": "S-department job"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Regular hours",
+"S department"
+],
+"b": [
+-25.29753417214946,
+36.982540697235116,
+-77.25082844878862
+],
+"se": [
+13.53835975405494,
+0.69067478590186,
+17.64855923812695
+],
+"p": [
+0.06178713154509172,
+0.0,
+1.2470765729933512e-05
+],
+"r2": 0.520088120149343,
+"n": 2756,
+"show": [
+-25.3,
+36.98,
+-77.25
+],
+"pshow": [
+0.062,
+0.0,
+0.0
+]
+},
+"prompt": "Predict regular pay for an observation with regular hours = 20 that is in the group \"S-department job\".",
+"equation": "Predicted regular pay = b\u2080 + b\u2081[Regular hours] + b\u2082[S department]",
+"checks": [
+{
+"label": "Predicted regular pay",
+"value": 637.05,
+"tol": 1.2741
+}
+],
+"answer": [
+"Substitute Regular hours = 20 and S department = 1 into the model:",
+"-25.300 + (36.980 \u00d7 20) + (-77.250 \u00d7 1) = 637.0500.",
+"Regular hours = 20 is inside the observed range (0.25 to 51), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Regular hours"
+],
+"b": [
+-55.86551866324325,
+37.34013481549727
+],
+"se": [
+11.636363831519663,
+0.6880836117505889
+],
+"p": [
+1.6635918052323833e-06,
+0.0
+],
+"r2": 0.5167481463005502,
+"n": 2756,
+"show": [
+-55.87,
+37.34
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on regular hours. By how much does predicted regular pay change when regular hours increases by 1?",
+"equation": "Predicted regular pay = a\u2080 + a\u2081[Regular hours]",
+"checks": [
+{
+"label": "Change for +1 regular hours",
+"value": 37.34,
+"tol": 0.07468000000000001
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 37.340: each one-unit increase in regular hours (Reg_Hrs) is associated with an increase of 37.340 in predicted regular pay (Reg_Pay for the row (USD)).",
+"So +1 \u2192 +37.3400.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Regular hours",
+"Regular hours\u00b2"
+],
+"b": [
+67.97113680898927,
+9.27258698975154,
+0.7250933935752708
+],
+"se": [
+14.876482342775901,
+2.291015906057554,
+0.056609555316851336
+],
+"p": [
+5.115541220428707e-06,
+5.322356355571959e-05,
+1.5844467931642194e-36
+],
+"r2": 0.5439273203941337,
+"n": 2756,
+"show": [
+67.97,
+9.273,
+0.7251
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "What do you learn from the p-value of the regular hours-squared term?",
+"equation": "Predicted regular pay = c\u2080 + c\u2081[Regular hours] + c\u2082[Regular hours]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "U-shaped (convex)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = 0.7251, p < 0.001.",
+"p < 0.05: there is statistically significant curvature \u2013 the effect of regular hours on regular pay is not constant but grows as regular hours increases.",
+"A positive c\u2082 means a U-shaped (convex) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Regular hours",
+"S department",
+"Regular hours\u00d7S department"
+],
+"b": [
+-93.45385399370035,
+42.29429645527376,
+118.51284271698802,
+-18.321263121024618
+],
+"se": [
+14.286240768231444,
+0.7979249159207358,
+23.3647760362914,
+1.4819060933595234
+],
+"p": [
+7.23415760845964e-11,
+0.0,
+4.1918615145875527e-07,
+3.2842113747086414e-34
+],
+"r2": 0.5453407745065711,
+"n": 2756,
+"show": [
+-93.45,
+42.29,
+118.5,
+-18.32
+],
+"pshow": [
+0.0,
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, regular hours, s department, and regular hours \u00d7 s department.",
+"equation": "Predicted regular pay = d\u2080 + d\u2081[Regular hours] + d\u2082[S department] + d\u2083([Regular hours]\u00d7[S department])",
+"checks": [
+{
+"label": "Slope of regular hours for the group \"S-department job\"",
+"value": 23.97,
+"tol": 0.047939999999999997
+},
+{
+"label": "Predicted difference (S-department job minus other jobs) at regular hours = 20",
+"value": -247.89999999999998,
+"tol": 0.49579999999999996
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = -93.450: predicted regular pay for the reference group (other jobs) when regular hours = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 42.290: slope of regular hours for the reference group.",
+"d\u2082 = 118.5: difference between S-department job and the reference group when regular hours = 0.",
+"d\u2083 = -18.320 (p < 0.001): how much the slope differs for S-department job. Their slope is d\u2081 + d\u2083 = 23.9700. Significant at 5% \u2013 the effect of regular hours really differs between the groups.",
+"At regular hours = 20 the predicted gap is d\u2082 + d\u2083\u00d720 = -247.9000."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "FILM-D",
+"case": "film",
+"title": "Film permit duration",
+"data": "NYC shooting permits lasting up to 72 hours with lead time up to 30 days",
+"y": {
+"name": "Permit duration",
+"unit": "hours from StartDateTime to EndDateTime"
+},
+"x": {
+"name": "Lead time",
+"unit": "days between EnteredOn and StartDateTime",
+"range": [
+0.00902777769806562,
+29.851388888899237
+]
+},
+"d": {
+"name": "Television",
+"desc": "Category = Television",
+"ref": "other categories (reference group)",
+"one": "Television"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Lead time",
+"Television"
+],
+"b": [
+13.716097035323319,
+0.2269648244739892,
+0.060987621518822754
+],
+"se": [
+0.06884883941357578,
+0.010005170832664336,
+0.06937170848607119
+],
+"p": [
+0.0,
+6.4670486649952e-113,
+0.37933145619327113
+],
+"r2": 0.01789684342052189,
+"n": 28270,
+"show": [
+13.72,
+0.227,
+0.06099
+],
+"pshow": [
+0.0,
+0.0,
+0.379
+]
+},
+"prompt": "Predict permit duration for an observation with lead time = 5 that is in the group \"Television\".",
+"equation": "Predicted permit duration = b\u2080 + b\u2081[Lead time] + b\u2082[Television]",
+"checks": [
+{
+"label": "Predicted permit duration",
+"value": 14.91599,
+"tol": 0.02983198
+}
+],
+"answer": [
+"Substitute Lead time = 5 and Television = 1 into the model:",
+"13.720 + (0.227 \u00d7 5) + (0.06099 \u00d7 1) = 14.9160.",
+"Lead time = 5 is inside the observed range (0.009028 to 29.85), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Lead time"
+],
+"b": [
+13.751900265803828,
+0.2269010826338281
+],
+"se": [
+0.05551214678715247,
+0.010004867929163058
+],
+"p": [
+0.0,
+7.341254704056425e-113
+],
+"r2": 0.017869990223389864,
+"n": 28270,
+"show": [
+13.75,
+0.2269
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on lead time. By how much does predicted permit duration change when lead time increases by 1?",
+"equation": "Predicted permit duration = a\u2080 + a\u2081[Lead time]",
+"checks": [
+{
+"label": "Change for +1 lead time",
+"value": 0.2269,
+"tol": 0.00045379999999999997
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 0.2269: each one-unit increase in lead time (days between EnteredOn and StartDateTime) is associated with an increase of 0.2269 in predicted permit duration (hours from StartDateTime to EndDateTime).",
+"So +1 \u2192 +0.2269.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Lead time",
+"Lead time\u00b2"
+],
+"b": [
+13.99933635438465,
+0.13325843142089347,
+0.005254218580319728
+],
+"se": [
+0.07965746768830767,
+0.02382770628950976,
+0.0012134719227280284
+],
+"p": [
+0.0,
+2.2578154924295125e-08,
+1.496863803771164e-05
+],
+"r2": 0.018520955944554163,
+"n": 28270,
+"show": [
+14.0,
+0.1333,
+0.005254
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "What do you learn from the p-value of the lead time-squared term?",
+"equation": "Predicted permit duration = c\u2080 + c\u2081[Lead time] + c\u2082[Lead time]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "U-shaped (convex)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = 0.005254, p < 0.001.",
+"p < 0.05: there is statistically significant curvature \u2013 the effect of lead time on permit duration is not constant but grows as lead time increases.",
+"A positive c\u2082 means a U-shaped (convex) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Lead time",
+"Television",
+"Lead time\u00d7Television"
+],
+"b": [
+13.841017287990011,
+0.19856734600966525,
+-0.14462754645948994,
+0.04695338572586736
+],
+"se": [
+0.08776963761596625,
+0.015914174258961897,
+0.11332258804322105,
+0.020463394498990352
+],
+"p": [
+0.0,
+1.2314005943796818e-35,
+0.2018789126851528,
+0.021768733485553894
+],
+"r2": 0.018079733582046065,
+"n": 28270,
+"show": [
+13.84,
+0.1986,
+-0.1446,
+0.04695
+],
+"pshow": [
+0.0,
+0.0,
+0.202,
+0.022
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, lead time, television, and lead time \u00d7 television.",
+"equation": "Predicted permit duration = d\u2080 + d\u2081[Lead time] + d\u2082[Television] + d\u2083([Lead time]\u00d7[Television])",
+"checks": [
+{
+"label": "Slope of lead time for the group \"Television\"",
+"value": 0.24555,
+"tol": 0.0004911
+},
+{
+"label": "Predicted difference (Television minus other categories) at lead time = 5",
+"value": 0.09014999999999998,
+"tol": 0.01
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 13.840: predicted permit duration for the reference group (other categories) when lead time = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 0.1986: slope of lead time for the reference group.",
+"d\u2082 = -0.1446: difference between Television and the reference group when lead time = 0.",
+"d\u2083 = 0.04695 (p = 0.022): how much the slope differs for Television. Their slope is d\u2081 + d\u2083 = 0.2455. Significant at 5% \u2013 the effect of lead time really differs between the groups.",
+"At lead time = 5 the predicted gap is d\u2082 + d\u2083\u00d75 = 0.0901."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "SONG-E",
+"case": "songs",
+"title": "Song energy and loudness",
+"data": "CS50 songs.db, 100 songs",
+"y": {
+"name": "Energy",
+"unit": "energy score (0\u20131)"
+},
+"x": {
+"name": "Loudness",
+"unit": "loudness (dB, negative numbers; closer to 0 = louder)",
+"range": [
+-10.109,
+-2.384
+]
+},
+"d": {
+"name": "Featuring",
+"desc": "song name contains \"feat.\"",
+"ref": "solo songs (reference group)",
+"one": "songs featuring another artist"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Loudness",
+"Featuring"
+],
+"b": [
+0.9970762607399101,
+0.060765887396856844,
+0.03883651211100398
+],
+"se": [
+0.033164596129807704,
+0.0056115923829611145,
+0.025833838721894906
+],
+"p": [
+5.876974922394256e-51,
+2.2010188902318867e-18,
+0.13600557871730323
+],
+"r2": 0.5474216767045228,
+"n": 100,
+"show": [
+0.9971,
+0.06077,
+0.03884
+],
+"pshow": [
+0.0,
+0.0,
+0.136
+]
+},
+"prompt": "Predict energy for an observation with loudness = -6 that is in the group \"songs featuring another artist\".",
+"equation": "Predicted energy = b\u2080 + b\u2081[Loudness] + b\u2082[Featuring]",
+"checks": [
+{
+"label": "Predicted energy",
+"value": 0.6713199999999999,
+"tol": 0.01
+}
+],
+"answer": [
+"Substitute Loudness = -6 and Featuring = 1 into the model:",
+"0.9971 + (0.06077 \u00d7 -6) + (0.03884 \u00d7 1) = 0.6713.",
+"Loudness = -6 is inside the observed range (-10.11 to -2.384), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Loudness"
+],
+"b": [
+0.9985648951366077,
+0.05979683374370467
+],
+"se": [
+0.03336222977454023,
+0.005610166384270792
+],
+"p": [
+4.2494067017852787e-51,
+4.526084098372625e-18
+],
+"r2": 0.5368772113238014,
+"n": 100,
+"show": [
+0.9986,
+0.0598
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on loudness. By how much does predicted energy change when loudness increases by 1?",
+"equation": "Predicted energy = a\u2080 + a\u2081[Loudness]",
+"checks": [
+{
+"label": "Change for +1 loudness",
+"value": 0.0598,
+"tol": 0.00011960000000000001
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 0.0598: each one-unit increase in loudness (loudness (dB, negative numbers; closer to 0 = louder)) is associated with an increase of 0.0598 in predicted energy (energy score (0\u20131)).",
+"So +1 \u2192 +0.0598.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Loudness",
+"Loudness\u00b2"
+],
+"b": [
+0.8516773013675666,
+0.006747041734648876,
+-0.0043635051523000816
+],
+"se": [
+0.09134236641983301,
+0.03125416148940234,
+0.002529825610830225
+],
+"p": [
+3.8668349659673585e-15,
+0.8295372513941722,
+0.08774410143519669
+],
+"r2": 0.5506586472609369,
+"n": 100,
+"show": [
+0.8517,
+0.006747,
+-0.004364
+],
+"pshow": [
+0.0,
+0.83,
+0.088
+]
+},
+"prompt": "What do you learn from the p-value of the loudness-squared term?",
+"equation": "Predicted energy = c\u2080 + c\u2081[Loudness] + c\u2082[Loudness]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "inverted U (concave)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = -0.004364, p = 0.088.",
+"p \u2265 0.05: no statistically significant curvature; the data do not support a non-linear relationship beyond the linear term.",
+"A negative c\u2082 means a inverted-U (concave) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Loudness",
+"Featuring",
+"Loudness\u00d7Featuring"
+],
+"b": [
+0.9972075745414672,
+0.060789410003037295,
+0.03804007030340266,
+-0.00013235876618310772
+],
+"se": [
+0.03640951478687843,
+0.006220509182374262,
+0.09250885648690998,
+0.014755691669427223
+],
+"p": [
+3.6905555102971754e-47,
+4.584699081299251e-16,
+0.6818390087174507,
+0.992861674285695
+],
+"r2": 0.5474220560268697,
+"n": 100,
+"show": [
+0.9972,
+0.06079,
+0.03804,
+-0.0001324
+],
+"pshow": [
+0.0,
+0.0,
+0.682,
+0.993
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, loudness, featuring, and loudness \u00d7 featuring.",
+"equation": "Predicted energy = d\u2080 + d\u2081[Loudness] + d\u2082[Featuring] + d\u2083([Loudness]\u00d7[Featuring])",
+"checks": [
+{
+"label": "Slope of loudness for the group \"songs featuring another artist\"",
+"value": 0.0606576,
+"tol": 0.0001213152
+},
+{
+"label": "Predicted difference (songs featuring another artist minus solo songs) at loudness = -6",
+"value": 0.0388344,
+"tol": 0.01
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 0.9972: predicted energy for the reference group (solo songs) when loudness = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 0.06079: slope of loudness for the reference group.",
+"d\u2082 = 0.03804: difference between songs featuring another artist and the reference group when loudness = 0.",
+"d\u2083 = -0.0001324 (p = 0.993): how much the slope differs for songs featuring another artist. Their slope is d\u2081 + d\u2083 = 0.0607. Not significant at 5% \u2013 no evidence that the slopes differ.",
+"At loudness = -6 the predicted gap is d\u2082 + d\u2083\u00d7-6 = 0.0388."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "MOV-R",
+"case": "movies",
+"title": "Movie ratings and popularity",
+"data": "CS50 movies.db, movies from 1990\u20132019 with 1,000\u2013200,000 votes",
+"y": {
+"name": "Rating",
+"unit": "IMDb rating (1\u201310)"
+},
+"x": {
+"name": "Votes",
+"unit": "thousands of votes",
+"range": [
+1.0,
+199.951
+]
+},
+"d": {
+"name": "Released 2010+",
+"desc": "movie released in 2010 or later",
+"ref": "released 1990\u20132009 (reference group)",
+"one": "released 2010 or later"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Votes",
+"Released 2010+"
+],
+"b": [
+6.180874054467973,
+0.004610481879553913,
+-0.07058348051328767
+],
+"se": [
+0.011734270397511737,
+0.00024824295171361896,
+0.01537349384618613
+],
+"p": [
+0.0,
+2.1075448927045984e-76,
+4.430864334374283e-06
+],
+"r2": 0.01713103330176069,
+"n": 21651,
+"show": [
+6.181,
+0.00461,
+-0.07058
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "Predict rating for an observation with votes = 50 that is in the group \"released 2010 or later\".",
+"equation": "Predicted rating = b\u2080 + b\u2081[Votes] + b\u2082[Released 2010+]",
+"checks": [
+{
+"label": "Predicted rating",
+"value": 6.340920000000001,
+"tol": 0.012681840000000002
+}
+],
+"answer": [
+"Substitute Votes = 50 and Released 2010+ = 1 into the model:",
+"6.181 + (0.00461 \u00d7 50) + (-0.07058 \u00d7 1) = 6.3409.",
+"Votes = 50 is inside the observed range (1 to 200), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Votes"
+],
+"b": [
+6.144339655316216,
+0.004677330701226519
+],
+"se": [
+0.008627965231511022,
+0.00024793049031754074
+],
+"p": [
+0.0,
+9.393155344006907e-79
+],
+"r2": 0.01617397404845744,
+"n": 21651,
+"show": [
+6.144,
+0.004677
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on votes. By how much does predicted rating change when votes increases by 10?",
+"equation": "Predicted rating = a\u2080 + a\u2081[Votes]",
+"checks": [
+{
+"label": "Change for +10 votes",
+"value": 0.04677,
+"tol": 0.0001
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 0.004677: each one-unit increase in votes (thousands of votes) is associated with an increase of 0.004677 in predicted rating (IMDb rating (1\u201310)).",
+"So +10 \u2192 +0.0468.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Votes",
+"Votes\u00b2"
+],
+"b": [
+6.114468983248276,
+0.009092378867372275,
+-3.323708187086437e-05
+],
+"se": [
+0.00963884675684032,
+0.0006842951374832538,
+4.802237809150451e-06
+],
+"p": [
+0.0,
+3.944046686600439e-40,
+4.604583957644808e-12
+],
+"r2": 0.01834617017185769,
+"n": 21651,
+"show": [
+6.114,
+0.009092,
+-3.324e-05
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "What do you learn from the p-value of the votes-squared term?",
+"equation": "Predicted rating = c\u2080 + c\u2081[Votes] + c\u2082[Votes]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "inverted U (concave)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = -3.324e-05, p < 0.001.",
+"p < 0.05: there is statistically significant curvature \u2013 the effect of votes on rating is not constant but weakens as votes increases.",
+"A negative c\u2082 means a inverted-U (concave) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Votes",
+"Released 2010+",
+"Votes\u00d7Released 2010+"
+],
+"b": [
+6.183746652184774,
+0.004448261108511618,
+-0.07633607039216884,
+0.00036682887922097405
+],
+"se": [
+0.01237000027010708,
+0.0003323930192251016,
+0.017256612767622793,
+0.0004998393270437586
+],
+"p": [
+0.0,
+1.1101954110633047e-40,
+9.755026533732994e-06,
+0.4630215411997615
+],
+"r2": 0.0171554874922899,
+"n": 21651,
+"show": [
+6.184,
+0.004448,
+-0.07634,
+0.0003668
+],
+"pshow": [
+0.0,
+0.0,
+0.0,
+0.463
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, votes, released 2010+, and votes \u00d7 released 2010+.",
+"equation": "Predicted rating = d\u2080 + d\u2081[Votes] + d\u2082[Released 2010+] + d\u2083([Votes]\u00d7[Released 2010+])",
+"checks": [
+{
+"label": "Slope of votes for the group \"released 2010 or later\"",
+"value": 0.004814799999999999,
+"tol": 0.0001
+},
+{
+"label": "Predicted difference (released 2010 or later minus released 1990\u20132009) at votes = 50",
+"value": -0.058,
+"tol": 0.01
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 6.184: predicted rating for the reference group (released 1990\u20132009) when votes = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 0.004448: slope of votes for the reference group.",
+"d\u2082 = -0.07634: difference between released 2010 or later and the reference group when votes = 0.",
+"d\u2083 = 0.0003668 (p = 0.463): how much the slope differs for released 2010 or later. Their slope is d\u2081 + d\u2083 = 0.0048. Not significant at 5% \u2013 no evidence that the slopes differ.",
+"At votes = 50 the predicted gap is d\u2082 + d\u2083\u00d750 = -0.0580."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "PC-S",
+"case": "pcards",
+"title": "P-card spending per cardholder",
+"data": "OSU P-card purchases in 2014, aggregated per cardholder (5\u2013400 purchases)",
+"y": {
+"name": "Annual spending",
+"unit": "total purchase amount per cardholder in 2014 (USD)"
+},
+"x": {
+"name": "Purchases",
+"unit": "number of purchases in 2014",
+"range": [
+5.0,
+395.0
+]
+},
+"d": {
+"name": "Uses Amazon",
+"desc": "cardholder bought from an Amazon vendor in 2014",
+"ref": "no Amazon purchases (reference group)",
+"one": "Amazon user"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Purchases",
+"Uses Amazon"
+],
+"b": [
+-446.28325837293886,
+311.5710317529605,
+-1114.1735240527644
+],
+"se": [
+557.9773890271758,
+6.790434338902373,
+788.9480888798312
+],
+"p": [
+0.42392179440826067,
+1.8471387734162947e-302,
+0.1580610283817559
+],
+"r2": 0.5598722406083547,
+"n": 1753,
+"show": [
+-446.3,
+311.6,
+-1114.0
+],
+"pshow": [
+0.424,
+0.0,
+0.158
+]
+},
+"prompt": "Predict annual spending for an observation with purchases = 100 that is in the group \"Amazon user\".",
+"equation": "Predicted annual spending = b\u2080 + b\u2081[Purchases] + b\u2082[Uses Amazon]",
+"checks": [
+{
+"label": "Predicted annual spending",
+"value": 29599.700000000004,
+"tol": 59.19940000000001
+}
+],
+"answer": [
+"Substitute Purchases = 100 and Uses Amazon = 1 into the model:",
+"-446.3 + (311.6 \u00d7 100) + (-1,114.0 \u00d7 1) = 29,599.7000.",
+"Purchases = 100 is inside the observed range (5 to 395), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Purchases"
+],
+"b": [
+-767.4969910469501,
+309.05906565768174
+],
+"se": [
+509.65851021257424,
+6.555190053600191
+],
+"p": [
+0.13227208446448482,
+0.0
+],
+"r2": 0.5593706498529847,
+"n": 1753,
+"show": [
+-767.5,
+309.1
+],
+"pshow": [
+0.132,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on purchases. By how much does predicted annual spending change when purchases increases by 10?",
+"equation": "Predicted annual spending = a\u2080 + a\u2081[Purchases]",
+"checks": [
+{
+"label": "Change for +10 purchases",
+"value": 3091.0,
+"tol": 6.182
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 309.1: each one-unit increase in purchases (number of purchases in 2014) is associated with an increase of 309.1 in predicted annual spending (total purchase amount per cardholder in 2014 (USD)).",
+"So +10 \u2192 +3,091.0000.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Purchases",
+"Purchases\u00b2"
+],
+"b": [
+-467.8687004274895,
+298.3806772198539,
+0.0436762081467069
+],
+"se": [
+648.6114974868544,
+15.726351262370665,
+0.05846722240168818
+],
+"p": [
+0.4707973893354523,
+3.7744123796551605e-73,
+0.4551515961653481
+],
+"r2": 0.5595111128197501,
+"n": 1753,
+"show": [
+-467.9,
+298.4,
+0.04368
+],
+"pshow": [
+0.471,
+0.0,
+0.455
+]
+},
+"prompt": "What do you learn from the p-value of the purchases-squared term?",
+"equation": "Predicted annual spending = c\u2080 + c\u2081[Purchases] + c\u2082[Purchases]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "no",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "U-shaped (convex)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = 0.04368, p = 0.455.",
+"p \u2265 0.05: no statistically significant curvature; the data do not support a non-linear relationship beyond the linear term.",
+"A positive c\u2082 means a U-shaped (convex) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Purchases",
+"Uses Amazon",
+"Purchases\u00d7Uses Amazon"
+],
+"b": [
+379.85149152315415,
+291.11601173194117,
+-2833.0351047972513,
+33.06021624040674
+],
+"se": [
+657.4599849902019,
+10.982589327980037,
+1071.3424743117696,
+13.962321527325194
+],
+"p": [
+0.5635031942562766,
+1.9660227246392185e-130,
+0.008257302415037377,
+0.018001647743944537
+],
+"r2": 0.5612785961326439,
+"n": 1753,
+"show": [
+379.9,
+291.1,
+-2833.0,
+33.06
+],
+"pshow": [
+0.564,
+0.0,
+0.008,
+0.018
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, purchases, uses amazon, and purchases \u00d7 uses amazon.",
+"equation": "Predicted annual spending = d\u2080 + d\u2081[Purchases] + d\u2082[Uses Amazon] + d\u2083([Purchases]\u00d7[Uses Amazon])",
+"checks": [
+{
+"label": "Slope of purchases for the group \"Amazon user\"",
+"value": 324.16,
+"tol": 0.6483200000000001
+},
+{
+"label": "Predicted difference (Amazon user minus no Amazon purchases) at purchases = 100",
+"value": 473.0,
+"tol": 0.9460000000000001
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 379.9: predicted annual spending for the reference group (no Amazon purchases) when purchases = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 291.1: slope of purchases for the reference group.",
+"d\u2082 = -2,833.0: difference between Amazon user and the reference group when purchases = 0.",
+"d\u2083 = 33.060 (p = 0.018): how much the slope differs for Amazon user. Their slope is d\u2081 + d\u2083 = 324.1600. Significant at 5% \u2013 the effect of purchases really differs between the groups.",
+"At purchases = 100 the predicted gap is d\u2082 + d\u2083\u00d7100 = 473.0000."
+]
+}
+],
+"seconds": 300
+},
+{
+"id": "CHI-B",
+"case": "chinook",
+"title": "Chinook track file size",
+"data": "Chinook Track table, 3,503 tracks",
+"y": {
+"name": "File size",
+"unit": "megabytes (Bytes / 1,048,576)"
+},
+"x": {
+"name": "Length",
+"unit": "track length in minutes",
+"range": [
+0.01785,
+88.11588333333333
+]
+},
+"d": {
+"name": "Video",
+"desc": "MediaType = Protected MPEG-4 video file",
+"ref": "audio tracks (reference group)",
+"one": "video tracks"
+},
+"questions": [
+{
+"kind": "P",
+"model": {
+"terms": [
+"Intercept",
+"Length",
+"Video"
+],
+"b": [
+-25.025268098752747,
+7.415596643586456,
+136.46763651909552
+],
+"se": [
+0.7292132138707227,
+0.13038773705802867,
+4.853812634949802
+],
+"p": [
+9.669057071034672e-223,
+0.0,
+5.365774318664548e-157
+],
+"r2": 0.9363276900429103,
+"n": 3503,
+"show": [
+-25.03,
+7.416,
+136.5
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "Predict file size for an observation with length = 4 that is in the group \"video tracks\".",
+"equation": "Predicted file size = b\u2080 + b\u2081[Length] + b\u2082[Video]",
+"checks": [
+{
+"label": "Predicted file size",
+"value": 141.13400000000001,
+"tol": 0.282268
+}
+],
+"answer": [
+"Substitute Length = 4 and Video = 1 into the model:",
+"-25.030 + (7.416 \u00d7 4) + (136.5 \u00d7 1) = 141.1340.",
+"Length = 4 is inside the observed range (0.01785 to 88.12), so this is interpolation, not extrapolation."
+]
+},
+{
+"kind": "S",
+"model": {
+"terms": [
+"Intercept",
+"Length"
+],
+"b": [
+-39.04227708074172,
+10.823207777819217
+],
+"se": [
+0.5891197946111789,
+0.05322324859082946
+],
+"p": [
+0.0,
+0.0
+],
+"r2": 0.9219471271450674,
+"n": 3503,
+"show": [
+-39.04,
+10.82
+],
+"pshow": [
+0.0,
+0.0
+]
+},
+"prompt": "Interpret the coefficient on length. By how much does predicted file size change when length increases by 1?",
+"equation": "Predicted file size = a\u2080 + a\u2081[Length]",
+"checks": [
+{
+"label": "Change for +1 length",
+"value": 10.82,
+"tol": 0.02164
+},
+{
+"label": "Significant at the 5% level?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"a\u2081 = 10.820: each one-unit increase in length (track length in minutes) is associated with an increase of 10.820 in predicted file size (megabytes (Bytes / 1,048,576)).",
+"So +1 \u2192 +10.8200.",
+"p < 0.001 < 0.05: statistically significant at the 5% level.",
+"Association, not causation: this is observational data, other factors are not held constant in a one-variable model."
+]
+},
+{
+"kind": "Q",
+"model": {
+"terms": [
+"Intercept",
+"Length",
+"Length\u00b2"
+],
+"b": [
+-25.059357145190116,
+7.349302320966991,
+0.07187320639898923
+],
+"se": [
+0.9472954024963991,
+0.1960236479059652,
+0.00391683769320323
+],
+"p": [
+9.746305572792566e-141,
+6.339143675777018e-259,
+7.02685574681214e-72
+],
+"r2": 0.928797152896669,
+"n": 3503,
+"show": [
+-25.06,
+7.349,
+0.07187
+],
+"pshow": [
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "What do you learn from the p-value of the length-squared term?",
+"equation": "Predicted file size = c\u2080 + c\u2081[Length] + c\u2082[Length]\u00b2",
+"checks": [
+{
+"label": "Is the squared term significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+},
+{
+"label": "Shape implied by the sign of c\u2082",
+"value": "U-shaped (convex)",
+"choices": [
+"U-shaped (convex)",
+"inverted U (concave)"
+]
+}
+],
+"answer": [
+"c\u2082 = 0.07187, p < 0.001.",
+"p < 0.05: there is statistically significant curvature \u2013 the effect of length on file size is not constant but grows as length increases.",
+"A positive c\u2082 means a U-shaped (convex) curve."
+]
+},
+{
+"kind": "I",
+"model": {
+"terms": [
+"Intercept",
+"Length",
+"Video",
+"Length\u00d7Video"
+],
+"b": [
+0.11502034872261015,
+1.7611084800446406,
+21.718733381804,
+7.949261356869089
+],
+"se": [
+1.0313162212049836,
+0.21462329296375982,
+5.649857004474703,
+0.2544741030740923
+],
+"p": [
+0.9112042807362262,
+3.1897361368955114e-16,
+0.00012313598893798678,
+3.626950262825479e-189
+],
+"r2": 0.9502125701086438,
+"n": 3503,
+"show": [
+0.115,
+1.761,
+21.72,
+7.949
+],
+"pshow": [
+0.911,
+0.0,
+0.0,
+0.0
+]
+},
+"prompt": "Interpret all coefficients in context: the intercept, length, video, and length \u00d7 video.",
+"equation": "Predicted file size = d\u2080 + d\u2081[Length] + d\u2082[Video] + d\u2083([Length]\u00d7[Video])",
+"checks": [
+{
+"label": "Slope of length for the group \"video tracks\"",
+"value": 9.709999999999999,
+"tol": 0.01942
+},
+{
+"label": "Predicted difference (video tracks minus audio tracks) at length = 4",
+"value": 53.516,
+"tol": 0.107032
+},
+{
+"label": "Is the interaction significant at 5%?",
+"value": "yes",
+"choices": [
+"yes",
+"no"
+]
+}
+],
+"answer": [
+"d\u2080 = 0.115: predicted file size for the reference group (audio tracks) when length = 0 \u2013 zero may lie outside the data, so it is mainly an anchor.",
+"d\u2081 = 1.761: slope of length for the reference group.",
+"d\u2082 = 21.720: difference between video tracks and the reference group when length = 0.",
+"d\u2083 = 7.949 (p < 0.001): how much the slope differs for video tracks. Their slope is d\u2081 + d\u2083 = 9.7100. Significant at 5% \u2013 the effect of length really differs between the groups.",
+"At length = 4 the predicted gap is d\u2082 + d\u2083\u00d74 = 53.5160."
+]
+}
+],
+"seconds": 300
+}
+]

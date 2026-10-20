@@ -1,0 +1,29 @@
+{
+  "name": "examstudio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Practice website for Data Analytics in Accounting (SDU) with a built-in spreadsheet and SQL workbench that checks answers against verified results.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "questions": "cd tools && python3 build_questions.py",
+    "verify": "node tools/verify.mjs",
+    "postinstall": "node tools/patch-univer.mjs"
+  },
+  "dependencies": {
+    "@univerjs/preset-sheets-core": "1.0.3",
+    "@univerjs/preset-sheets-filter": "1.0.3",
+    "@univerjs/preset-sheets-sort": "1.0.3",
+    "@univerjs/presets": "1.0.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "rxjs": "7.8.1",
+    "sql.js": "1.13.0"
+  },
+  "devDependencies": {
+    "playwright": "1.55.0",
+    "vite": "6.3.5"
+  }
+}
