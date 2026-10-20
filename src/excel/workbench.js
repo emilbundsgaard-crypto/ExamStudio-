@@ -34,6 +34,15 @@ export async function mountWorkbook(host, wbId, onStatus) {
   });
   univerAPI.createWorkbook(toUniverData(data));
   if (import.meta.env.DEV) window.__univerAPI = univerAPI;
+  // On a Mac, Univer binds jump/extend-selection to Cmd+arrow (as Mac Excel does). Accept Ctrl+arrow too.
+  if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+    const DIR = { ArrowUp: 0, ArrowRight: 1, ArrowDown: 2, ArrowLeft: 3 };
+    el.addEventListener('keydown', (e) => {
+      if (!e.ctrlKey || e.metaKey || e.altKey || !(e.key in DIR)) return;
+      e.preventDefault(); e.stopPropagation();
+      univerAPI.executeCommand(e.shiftKey ? 'sheet.command.expand-selection' : 'sheet.command.move-selection', { direction: DIR[e.key], jumpOver: 1 });
+    }, true);
+  }
   inst = { wbId, univer, univerAPI, host: el, sheets: data.sheets.map((s) => ({ name: s.name, headers: s.rows[0], rows: s.rows.length - 1, example: s.rows[1] })) };
   onStatus?.('');
   return inst;
@@ -47,7 +56,7 @@ export function disposeWorkbook() {
 }
 
 /** Value of the active cell, raw (full precision). */
-export function activeCell() {
+export async function activeCell() {
   if (!inst) return null;
   const wb = inst.univerAPI.getActiveWorkbook();
   const ws = wb?.getActiveSheet();
@@ -59,7 +68,7 @@ export function activeCell() {
 }
 
 /** Put a formula into the first empty row of the Work sheet and select it. */
-export function insertFormula(formula) {
+export async function insertFormula(formula) {
   if (!inst) return null;
   const wb = inst.univerAPI.getActiveWorkbook();
   const ws = wb.getSheetByName('Work');

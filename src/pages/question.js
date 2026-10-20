@@ -11,8 +11,8 @@ const saveDrafts = () => { try { localStorage.setItem('examstudio.drafts', JSON.
 const lastResult = new Map(); // qid -> {columns, values}
 
 let excelMod = null; // lazily loaded (Univer is large)
-let excelSync = null; // resolved module, for synchronous use
-const loadExcel = () => (excelMod ??= import('../excel/workbench.js').then((m) => (excelSync = m)));
+let excelSync = null; // resolved module
+const loadExcel = () => (excelMod ??= import('../excel/sheet.js').then((m) => (excelSync = m)));
 
 // ------------------------------------------------------------------ workbench (right side)
 let sqlUI = null;
@@ -91,11 +91,12 @@ async function mountSql(body, bar, q, onResult) {
 async function mountExcel(body, bar, q) {
   const cover = h('div.loading', {}, h('div', {}, h('div.spin'), h('div.msg', {}, 'Loading spreadsheet…')));
   body.append(cover);
-  bar.replaceChildren(h('span.tag.excel', {}, 'Spreadsheet'), h('b', {}, WORKBOOK_TITLES[q.wb] || q.wb), h('span.muted', {}, 'Excel-compatible formulas · scratch sheet "Work"'), h('span.spacer'));
+  bar.replaceChildren(h('span.tag.excel', {}, 'Spreadsheet'), h('b', {}, WORKBOOK_TITLES[q.wb] || q.wb), h('span.muted.engine-note', {}, 'Excel-style · PivotTables, fill handle, shortcuts · scratch sheet "Work"'), h('span.spacer'));
   try {
     const mod = await loadExcel();
     await mod.mountWorkbook(body, q.wb, (s) => { const m = cover.querySelector('.msg'); if (m && s) m.textContent = s; });
     window.dispatchEvent(new Event('resize'));
+    const note = bar.querySelector('.engine-note'); if (note && mod.engineName() === 'Univer') note.textContent = 'Excel-compatible formulas (basic mode – your browser lacks WebGL2) · scratch sheet "Work"';
   } catch (e) { cover.replaceChildren(h('div.err', {}, `Could not load the spreadsheet: ${e.message}`)); return; }
   cover.remove();
 }
@@ -112,7 +113,8 @@ function excelFields(q, saved = []) {
     const useBtn = h('button.btn.sm', { type: 'button', title: 'Copy the value of the selected cell in the spreadsheet' }, '⇦ cell');
     useBtn.addEventListener('click', async () => {
       const mod = await loadExcel();
-      const c = mod.activeCell();
+      let c = null;
+      try { c = await mod.activeCell(); } catch (e) { toast(`Could not read the cell: ${e.message}`); return; }
       if (!c || c.value === null || c.value === undefined || c.value === '') { toast('Select a cell with a value in the spreadsheet first.'); return; }
       let v = c.value;
       if ((a.kind === 'datetime' || a.kind === 'date') && typeof v === 'number') v = serialToText(v, a.kind === 'datetime');
@@ -214,7 +216,7 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
   return { q };
 }
 
-function tutorContext(q, fields, feedback) {
+async function tutorContext(q, fields, feedback) {
   const st = qState(q.id);
   const cs = caseById(q.case);
   const ctx = {
@@ -228,7 +230,7 @@ function tutorContext(q, fields, feedback) {
     ctx.known_mistakes = (q.diag || []).map((d) => ({ field: q.answers[d.a].label, wrong_value: d.value, meaning: d.msg }));
     ctx.student_typed_answers = fields.map((f) => ({ label: f.a.label, typed: f.input.value || '(empty)' }));
     const mod = excelSync;
-    if (mod) { ctx.workbook = mod.describeWorkbook(); const c = mod.activeCell(); if (c) ctx.student_selected_cell = { address: c.address, formula: c.formula, value: c.value }; }
+    if (mod) { ctx.workbook = mod.describeWorkbook(); try { const c = await mod.activeCell(); if (c) ctx.student_selected_cell = { address: c.address, formula: c.formula, value: c.value }; } catch { /* no sheet */ } }
   } else {
     const db = currentDb();
     ctx.database = db ? db.schema.map((t) => ({ table: t.name, rows: t.rows, columns: t.cols.map((c) => `${c.name} ${c.type}`) })) : q.db;
@@ -249,7 +251,7 @@ export function solution(q) {
     return h('div.solution', {}, h('b', {}, 'Verified answer'),
       q.answers.map((a) => h('div', { style: { margin: '8px 0' } }, h('div.small', {}, a.label, ': ', h('b.mono', {}, a.kind === 'datetime' || a.kind === 'date' ? serialToText(a.value, a.kind === 'datetime') : a.kind === 'pct' ? `${fmtNum(a.value * 100, 4)}%` : fmtNum(a.value, a.dp ?? 6))),
         h('div.small.muted', {}, 'One way to compute it (try it in the Work sheet):'), h('pre', {}, a.formula),
-        h('button.btn.sm', { onClick: async () => { const m = await import('../excel/workbench.js'); const where = m.insertFormula(a.formula); toast(where ? `Inserted in ${where}` : 'Open the spreadsheet first'); } }, 'Insert formula in Work sheet'))),
+        h('button.btn.sm', { onClick: async () => { const m = await loadExcel(); const where = await m.insertFormula(a.formula).catch(() => null); toast(where ? `Inserted in ${where}` : 'Open the spreadsheet first'); } }, 'Insert formula in Work sheet'))),
       q.explain ? h('p.small', {}, q.explain) : null);
   }
   return h('div.solution', {}, h('b', {}, 'Reference query'), h('pre', {}, q.ref),

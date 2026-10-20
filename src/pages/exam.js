@@ -43,14 +43,14 @@ export function renderExams(main) {
   main.replaceChildren(h('div.page', {},
     h('h1', {}, 'Mock exams'),
     h('p', { style: { color: 'var(--ink-2)', maxWidth: '64ch' } }, 'Rehearse under exam conditions: a timer, no feedback until you finish, and a report that tells you exactly which answers were wrong and why. Every exam can be reopened from its link, so you can retake the same one.'),
-    h('div.format', { style: { marginTop: '22px' } },
-      h('div.card', {}, h('div', {}, h('span.tag.excel', {}, 'Excel'), ' ', h('span.tag.sql', {}, 'SQL')), h('h2', { style: { margin: '10px 0 6px' } }, 'Data manipulation exam'),
+    h('div.exam-cards', {},
+      h('div.card', {}, h('div', {}, h('span.tag.excel', {}, 'Excel'), ' ', h('span.tag.sql', {}, 'SQL')), h('h2', { style: { margin: '6px 0 2px' } }, 'Data manipulation exam'),
         h('p.small.muted', {}, 'Three Excel questions on one course file and three SQL questions on one database. Download the files first if you want to answer in desktop Excel / DB Browser.'),
-        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '12px 0' } }, wbSel, dbSel, minSel),
+        h('div.opts', {}, wbSel, dbSel, minSel),
         h('button.btn.primary', { onClick: go }, 'Start exam →')),
-      h('div.card', {}, h('span.tag.interp', {}, 'Regression'), h('h2', { style: { margin: '10px 0 6px' } }, 'Data interpretation exam'),
+      h('div.card', {}, h('span.tag.interp', {}, 'Regression'), h('h2', { style: { margin: '6px 0 2px' } }, 'Data interpretation exam'),
         h('p.small.muted', {}, 'Four questions on one regression context – predict, interpret a slope, a squared term and an interaction – in five minutes.'),
-        h('a.btn.primary', { href: '#/interpretation', style: { marginTop: '12px' } }, 'Choose an interpretation exam →'))),
+        h('a.btn.primary', { href: '#/interpretation', style: { marginTop: 'auto' } }, 'Choose an interpretation exam →'))),
     hist.length ? h('section.section', {}, h('h2', {}, 'Recent exams'), h('table.table', { style: { marginTop: '10px' } }, h('thead', {}, h('tr', {}, h('th', {}, 'When'), h('th', {}, 'Exam'), h('th', {}, 'Score'), h('th', {}, 'Time'), h('th', {}))),
       h('tbody', {}, hist.map((e) => h('tr', {}, h('td', {}, new Date(e.at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })), h('td', {}, e.title), h('td.n', {}, `${e.score} / ${e.total}`), h('td.n', {}, secs(e.used)), h('td', {}, h('a', { href: e.link }, 'Retake'))))))) : null));
 }
@@ -119,5 +119,5 @@ export function renderMockExam(main, wb, db, seed, minutes) {
   }
   drawTabs();
   // every exam starts from untouched files
-  import('../excel/workbench.js').then((m) => { if (m.currentWorkbook()) m.disposeWorkbook(); go(0); });
+  import('../excel/sheet.js').then((m) => { if (m.currentWorkbook()) m.disposeWorkbook(); go(0); });
 }

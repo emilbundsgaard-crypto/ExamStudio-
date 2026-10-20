@@ -116,7 +116,8 @@ export function tutorBox({ getCtx, starters = [] }) {
     ctrl = new AbortController();
     send.disabled = true; stop.classList.remove('hidden');
     try {
-      const r = await ask({ system: buildSystem(getCtx()), messages: history }, { signal: ctrl.signal, onStatus: (s) => { status.textContent = s; } });
+      const ctxNow = await getCtx();
+      const r = await ask({ system: buildSystem(ctxNow), messages: history }, { signal: ctrl.signal, onStatus: (s) => { status.textContent = s; } });
       history.push({ role: 'model', text: r.text });
       bubble('model', r.text + (r.truncated ? '\n\n(The answer was cut off – ask "continue".)' : ''));
       status.textContent = '';
