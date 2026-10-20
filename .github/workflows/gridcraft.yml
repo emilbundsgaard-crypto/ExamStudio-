@@ -1,0 +1,33 @@
+name: Build GridCraft (web)
+# Builds the GridCraft spreadsheet (MIT/Apache-2.0) with our bridge patch and publishes the static
+# files to the `gridcraft-dist` branch, from where they are copied into public/gridcraft/.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['vendor/gridcraft-host-run.patch', 'tools/build-gridcraft.sh', '.github/workflows/gridcraft.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install trunk
+        run: cargo install trunk --locked
+      - name: Build GridCraft web
+        run: ./tools/build-gridcraft.sh
+      - name: Publish to gridcraft-dist branch
+        run: |
+          mkdir -p /tmp/out && cp -R public/gridcraft/. /tmp/out/
+          cd /tmp/out
+          git init -q -b gridcraft-dist
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -qm "GridCraft web build ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" gridcraft-dist

@@ -27,7 +27,7 @@ function env_config(): array {
 
 $cfg = env_config();
 $key = $cfg['GEMINI_API_KEY'] ?? '';
-$model = preg_replace('/[^a-zA-Z0-9._-]/', '', $cfg['GEMINI_MODEL'] ?? 'gemini-2.5-flash');
+$model = preg_replace('/[^a-zA-Z0-9._-]/', '', $cfg['GEMINI_MODEL'] ?? 'gemini-3.8-flash');
 $configured = $key !== '' && $key !== 'PASTE_YOUR_KEY_HERE';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') out(200, ['ok' => true, 'configured' => $configured, 'model' => $model]);

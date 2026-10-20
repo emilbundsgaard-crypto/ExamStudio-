@@ -1,0 +1,79 @@
+diff --git a/apps/gridcraft-web/src/host.rs b/apps/gridcraft-web/src/host.rs
+index 2286023..d00de78 100644
+--- a/apps/gridcraft-web/src/host.rs
++++ b/apps/gridcraft-web/src/host.rs
+@@ -9,6 +9,9 @@
+ //!   as PDF. The parent stores it and reports failures itself.
+ //! - `gridcraft:dirty` (to the parent): `{ dirty }` whenever unsaved changes appear or go away.
+ //! - `gridcraft:failed` (to the parent): `{ error }` when the app couldn't start.
++//! - `gridcraft:run` (from the parent): `{ id, command, params }` (params a JSON string) runs one of a
++//!   few engine commands (reading cells, entering a cell, selecting, activating a sheet); the answer
++//!   comes back as `gridcraft:result` `{ id, ok, result | error }` (result a JSON string).
+ //!
+ //! Only the parent window on the page's own origin is heard or answered. In host mode the page
+ //! starts with an empty workbook instead of a sample, and the parent guards leaving the page.
+@@ -37,8 +40,13 @@ pub struct Bridge {
+     saved: Rc<RefCell<Vec<String>>>,
+     /// The unsaved-changes state last reported to the parent.
+     reported: Rc<Cell<Option<bool>>>,
++    /// Engine commands asked for by the parent, run on the next frame: (id, command, params).
++    requests: Rc<RefCell<Vec<(String, String, String)>>>,
+ }
+ 
++/// Commands the parent may run through `gridcraft:run`.
++const PARENT_COMMANDS: &[&str] = &["cell.get", "sheet.read", "document.inspect", "selection.stats", "cell.set", "selection.set", "sheet.activate", "edit.goTo"];
++
+ impl Bridge {
+     /// `None` when the page isn't framed (there is no parent to talk to).
+     pub fn new() -> Option<Self> {
+@@ -48,7 +56,7 @@ impl Bridge {
+             return None;
+         }
+         let origin = window.location().origin().ok()?;
+-        Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default() })
++        Some(Self { window, parent, origin, saved: Rc::default(), reported: Rc::default(), requests: Rc::default() })
+     }
+ 
+     /// Send saved and exported files to the parent instead of downloading them, and hear files
+@@ -82,6 +90,20 @@ impl Bridge {
+     /// After each frame: a workbook handed to the parent this frame counts as saved under the
+     /// name it was saved as, and the parent hears when unsaved changes appear or go away.
+     pub fn sync(&self, app: &mut SheetApp) {
++        let requests = std::mem::take(&mut *self.requests.borrow_mut());
++        for (id, command, params) in requests {
++            let params: serde_json::Value = serde_json::from_str(&params).unwrap_or(serde_json::Value::Object(Default::default()));
++            let reply = if !PARENT_COMMANDS.contains(&command.as_str()) {
++                Err(format!("command not allowed: {command}"))
++            } else {
++                app.session.run(&command, params).map_err(|e| e.to_string())
++            };
++            let fields: Vec<(&str, JsValue)> = match &reply {
++                Ok(v) => vec![("type", "gridcraft:result".into()), ("id", id.as_str().into()), ("ok", true.into()), ("result", v.to_string().into())],
++                Err(e) => vec![("type", "gridcraft:result".into()), ("id", id.as_str().into()), ("ok", false.into()), ("error", e.as_str().into())],
++            };
++            self.send(&fields);
++        }
+         let saved = std::mem::take(&mut *self.saved.borrow_mut());
+         if let Some(name) = saved.iter().rev().find(|name| is_workbook(name))
+             && let Some(doc) = app.session.active_mut()
+@@ -112,11 +134,20 @@ impl Bridge {
+     fn listen(&self, inbox: Inbox, ctx: egui::Context) {
+         let parent = self.parent.clone();
+         let origin = self.origin.clone();
++        let requests = self.requests.clone();
+         let on_message = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |event: web_sys::MessageEvent| {
+             if event.origin() != origin || !event.source().is_some_and(|s| js_sys::Object::is(&s, &parent)) {
+                 return;
+             }
+             let data = event.data();
++            if string(&data, "type").as_deref() == Some("gridcraft:run") {
++                let id = string(&data, "id").unwrap_or_default();
++                let command = string(&data, "command").unwrap_or_default();
++                let params = string(&data, "params").unwrap_or_else(|| "{}".to_string());
++                requests.borrow_mut().push((id, command, params));
++                ctx.request_repaint();
++                return;
++            }
+             if string(&data, "type").as_deref() != Some("gridcraft:open") {
+                 return;
+             }
