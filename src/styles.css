@@ -279,3 +279,44 @@ select.sel { -webkit-appearance: none; appearance: none; height: 36px; padding: 
 .fn-practise { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; padding-top: 4px; }
 .fn-practise .btn .st { width: 16px; height: 16px; font-size: 9px; }
 @media (max-width: 680px) { .fn-grid { grid-template-columns: 1fr; } }
+
+/* ---------- PivotTables (Excel-style) ---------- */
+.bench-body.with-pivot > .univer-host { right: 330px; }
+.pv-pane { position: absolute; top: 0; right: 0; bottom: 0; width: 330px; border-left: 1px solid var(--line); background: #fff; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; overflow: auto; font-size: .82rem; z-index: 5; box-sizing: border-box; }
+.pv-head { display: flex; justify-content: space-between; align-items: center; font-size: .95rem; }
+.pv-x { border: 0; background: none; cursor: pointer; font-size: 1rem; color: var(--ink-2); }
+.pv-sub, .pv-small { color: var(--ink-2); font-size: .76rem; }
+.pv-search, .pv-in { width: 100%; box-sizing: border-box; padding: 5px 7px; border: 1px solid var(--line); border-radius: 4px; font: inherit; background: #fff; }
+.pv-fields { border: 1px solid var(--line); border-radius: 4px; min-height: 110px; max-height: 190px; overflow: auto; padding: 4px 6px; flex-shrink: 0; }
+.pv-field { display: flex; align-items: center; gap: 4px; padding: 2px 0; cursor: grab; white-space: nowrap; }
+.pv-date { color: var(--ink-2); font-size: .72rem; }
+.pv-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; }
+.pv-area { border: 1px solid var(--line); border-radius: 4px; min-height: 92px; padding: 4px; background: #fbfbfa; }
+.pv-area.over { outline: 2px solid #2f6fb3; background: #eef4fb; }
+.pv-area-title { font-weight: 600; font-size: .76rem; margin-bottom: 3px; display: flex; gap: 4px; align-items: center; }
+.pv-ico { color: #2f6fb3; }
+.pv-chip { display: flex; align-items: center; justify-content: space-between; gap: 4px; background: #fff; border: 1px solid #c9d3df; border-radius: 3px; padding: 2px 4px; margin: 2px 0; cursor: grab; font-size: .76rem; }
+.pv-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-caret { border: 0; background: none; cursor: pointer; padding: 0 2px; color: #2f6fb3; }
+.pv-opts { display: flex; flex-direction: column; gap: 3px; border-top: 1px solid var(--line); padding-top: 6px; }
+.pv-opts select { font: inherit; }
+.pv-foot { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pv-btn { padding: 5px 12px; border: 1px solid #b9c2cc; background: #fff; border-radius: 4px; cursor: pointer; font: inherit; font-size: .8rem; }
+.pv-btn.primary { background: #2f6fb3; color: #fff; border-color: #2f6fb3; }
+.pv-modal-back { position: fixed; inset: 0; background: rgba(20, 24, 30, .35); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.pv-modal { background: #fff; border-radius: 6px; padding: 16px 18px; width: min(440px, calc(100vw - 32px)); max-height: 86vh; overflow: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25); font-size: .86rem; display: flex; flex-direction: column; gap: 8px; }
+.pv-modal-title { font-weight: 700; font-size: 1rem; }
+.pv-label { font-weight: 600; margin-top: 6px; }
+.pv-row { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; }
+.pv-radio { display: flex; gap: 6px; align-items: center; }
+.pv-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.pv-err { color: #b3261e; font-size: .8rem; min-height: 1em; }
+.pv-list { width: 100%; font: inherit; }
+.pv-checks { border: 1px solid var(--line); border-radius: 4px; max-height: 260px; overflow: auto; padding: 4px 6px; display: flex; flex-direction: column; gap: 2px; }
+.pv-all { font-weight: 600; }
+.pv-menu { position: fixed; z-index: 1001; background: #fff; border: 1px solid #c9d3df; border-radius: 4px; box-shadow: 0 6px 24px rgba(0,0,0,.18); width: 230px; padding: 4px 0; display: flex; flex-direction: column; }
+.pv-mi { text-align: left; border: 0; background: none; padding: 5px 12px; font: inherit; font-size: .82rem; cursor: pointer; }
+.pv-mi:hover:not(:disabled) { background: #eef4fb; }
+.pv-mi:disabled { color: #aab; cursor: default; }
+.pv-sep { height: 1px; background: var(--line); margin: 3px 0; }
+@media (max-width: 760px) { .bench-body.with-pivot > .univer-host { right: 0; bottom: 55%; } .pv-pane { top: 45%; width: 100%; border-left: 0; border-top: 1px solid var(--line); } }

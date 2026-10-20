@@ -10,6 +10,7 @@ import '@univerjs/preset-sheets-core/lib/index.css';
 import '@univerjs/preset-sheets-filter/lib/index.css';
 import '@univerjs/preset-sheets-sort/lib/index.css';
 import { loadWorkbookJson, toUniverData } from './workbook.js';
+import { createPivotTool } from './pivot-ui.js';
 
 let inst = null; // { wbId, univer, univerAPI, host }
 
@@ -43,13 +44,16 @@ export async function mountWorkbook(host, wbId, onStatus) {
       univerAPI.executeCommand(e.shiftKey ? 'sheet.command.expand-selection' : 'sheet.command.move-selection', { direction: DIR[e.key], jumpOver: 1 });
     }, true);
   }
-  inst = { wbId, univer, univerAPI, host: el, sheets: data.sheets.map((s) => ({ name: s.name, headers: s.rows[0], rows: s.rows.length - 1, example: s.rows[1] })) };
+  const dateCols = Object.fromEntries(data.sheets.map((s) => [s.name, s.dateCols || {}]));
+  const pivot = createPivotTool({ api: univerAPI, get host() { return el.parentElement; }, dateCols });
+  inst = { wbId, univer, univerAPI, host: el, pivot, sheets: data.sheets.map((s) => ({ name: s.name, headers: s.rows[0], rows: s.rows.length - 1, example: s.rows[1] })) };
   onStatus?.('');
   return inst;
 }
 
 export function disposeWorkbook() {
   if (!inst) return;
+  try { inst.pivot.dispose(); } catch { /* ignore */ }
   try { inst.univer.dispose(); } catch { /* ignore */ }
   inst.host.remove();
   inst = null;
@@ -62,7 +66,10 @@ export async function activeCell() {
   const ws = wb?.getActiveSheet();
   const r = ws?.getActiveRange?.() || wb?.getActiveRange?.();
   if (!r) return null;
-  const cd = r.getCellData?.();
+  // raw cell (the facade returns number-formatted text, e.g. "42.86%", which loses precision)
+  let cd = null;
+  try { cd = ws.getSheet().getCellRaw(r.getRow(), r.getColumn()); } catch { /* fall back */ }
+  cd ??= r.getCellData?.();
   const v = cd && cd.v !== undefined && cd.v !== null ? cd.v : r.getValue();
   return { value: v, address: `${ws.getSheetName()}!${r.getA1Notation()}`, formula: cd?.f || null };
 }
@@ -83,3 +90,6 @@ export async function insertFormula(formula) {
 
 /** Sheet names, headers and row counts – context for the AI tutor. */
 export function describeWorkbook() { return inst ? inst.sheets : null; }
+
+/** Excel: Insert ▸ PivotTable (or reopen the field list when a PivotTable sheet is active). */
+export function insertPivot() { inst?.pivot.insert(); return !!inst; }

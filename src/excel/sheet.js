@@ -1,5 +1,5 @@
-// The spreadsheet used by the site: GridCraft when the browser can run it (WebGL2/WebGPU),
-// otherwise Univer. Both expose the same small API.
+// The spreadsheet used by the site: Univer (fast, in-page). GridCraft can be tried with ?engine=gridcraft
+// when its files are installed (tools/build-gridcraft.sh). Both expose the same small API.
 import * as gc from './gridcraft.js';
 import WBINFO from '../data/wbinfo.json';
 
@@ -20,7 +20,7 @@ export const gridcraftCrashed = () => crashedBefore;
 export function retryGridcraft() { crashedBefore = false; guard.set(null); }
 
 export async function mountWorkbook(host, wbId, onStatus) {
-  const preferUniver = /[?&]engine=univer/.test(location.search) || !gc.supported() || crashedBefore;
+  const preferUniver = !/[?&]engine=gridcraft/.test(location.search) || !gc.supported() || crashedBefore;
   if (!preferUniver) {
     try {
       if (engine && engine !== gc) engine.disposeWorkbook();
@@ -46,3 +46,4 @@ export async function mountWorkbook(host, wbId, onStatus) {
 export async function activeCell() { return engine ? await engine.activeCell() : null; }
 export async function insertFormula(f) { return engine ? await engine.insertFormula(f) : null; }
 export function describeWorkbook() { return engine === gc ? gc.describeWorkbook() : engine?.describeWorkbook?.() || null; }
+export function insertPivot() { return engine && engine !== gc ? engine.insertPivot() : false; }

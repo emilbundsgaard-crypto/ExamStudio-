@@ -8,3 +8,4 @@ upload
 server/api/.env
 server/api/_limits
 .gridcraft-src
+public/gridcraft

@@ -91,17 +91,13 @@ async function mountSql(body, bar, q, onResult) {
 async function mountExcel(body, bar, q) {
   const cover = h('div.loading', {}, h('div', {}, h('div.spin'), h('div.msg', {}, 'Loading spreadsheet…')));
   body.append(cover);
-  bar.replaceChildren(h('span.tag.excel', {}, 'Spreadsheet'), h('b', {}, WORKBOOK_TITLES[q.wb] || q.wb), h('span.muted.engine-note', {}, 'Excel-style · PivotTables, fill handle, shortcuts · scratch sheet "Work"'), h('span.spacer'));
+  bar.replaceChildren(h('span.tag.excel', {}, 'Spreadsheet'), h('b', {}, WORKBOOK_TITLES[q.wb] || q.wb), h('span.muted.engine-note', {}, 'Excel-compatible formulas · PivotTables · scratch sheet "Work"'), h('span.spacer'));
   try {
     const mod = await loadExcel();
     await mod.mountWorkbook(body, q.wb, (s) => { const m = cover.querySelector('.msg'); if (m && s) m.textContent = s; });
     window.dispatchEvent(new Event('resize'));
-    const note = bar.querySelector('.engine-note');
-    if (note && mod.engineName() === 'Univer') {
-      if (mod.gridcraftCrashed()) {
-        note.replaceChildren('Basic spreadsheet – the full spreadsheet crashed in this browser last time. ',
-          h('a', { href: '#', onClick: (e) => { e.preventDefault(); mod.retryGridcraft(); mod.disposeWorkbook(); body.replaceChildren(); mountExcel(body, bar, q); } }, 'Try the full spreadsheet again'));
-      } else note.textContent = 'Excel-compatible formulas (basic mode – your browser lacks WebGL2) · scratch sheet "Work"';
+    if (mod.engineName() === 'Univer') {
+      bar.querySelector('.spacer').before(h('button.btn.sm.pv-insert', { title: 'Insert ▸ PivotTable (like Excel)', onClick: () => mod.insertPivot() }, '⊞ Insert PivotTable'));
     }
   } catch (e) { cover.replaceChildren(h('div.err', {}, `Could not load the spreadsheet: ${e.message}`)); return; }
   cover.remove();
