@@ -33,6 +33,7 @@ export async function mountWorkbook(host, wbId, onStatus) {
     presets: [UniverSheetsCorePreset({ container: el, disableTextFormatAlert: true, disableTextFormatMark: true }), UniverSheetsFilterPreset(), UniverSheetsSortPreset()],
   });
   univerAPI.createWorkbook(toUniverData(data));
+  if (import.meta.env.DEV) window.__univerAPI = univerAPI;
   inst = { wbId, univer, univerAPI, host: el, sheets: data.sheets.map((s) => ({ name: s.name, headers: s.rows[0], rows: s.rows.length - 1, example: s.rows[1] })) };
   onStatus?.('');
   return inst;
