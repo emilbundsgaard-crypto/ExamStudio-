@@ -14,6 +14,9 @@ DirectoryIndex index.html
 </IfModule>
 <IfModule mod_deflate.c>
   SetEnvIfNoCase Request_URI "\.gz$" no-gzip dont-vary
+  SetEnvIfNoCase Request_URI "\.gz\.[0-9]+$" no-gzip dont-vary
+  # the GridCraft spreadsheet engine (19 MB WebAssembly) compresses to a fraction
+  AddOutputFilterByType DEFLATE application/wasm text/javascript application/javascript text/css text/html application/json
 </IfModule>
 <IfModule mod_headers.c>
   <FilesMatch "\.(gz|wasm|js|css)$">

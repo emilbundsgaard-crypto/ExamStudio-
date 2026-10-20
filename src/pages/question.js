@@ -101,6 +101,56 @@ async function mountExcel(body, bar, q) {
   cover.remove();
 }
 
+// ------------------------------------------------------------------ layout: resizable split + full screen
+const LAYOUT_KEY = 'examstudio.panelWidth';
+const relayout = () => requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+function initLayout(work, splitter) {
+  let w = null;
+  try { w = Number(localStorage.getItem(LAYOUT_KEY)) || null; } catch { /* ignore */ }
+  if (w) work.style.setProperty('--panel-w', `${w}px`);
+  splitter.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    splitter.setPointerCapture(e.pointerId);
+    work.classList.add('dragging');
+    const left = work.getBoundingClientRect().left;
+    const move = (ev) => {
+      const max = Math.max(320, work.clientWidth * 0.7);
+      w = Math.round(Math.min(max, Math.max(260, ev.clientX - left)));
+      work.style.setProperty('--panel-w', `${w}px`);
+    };
+    const up = () => {
+      work.classList.remove('dragging');
+      splitter.removeEventListener('pointermove', move); splitter.removeEventListener('pointerup', up);
+      try { localStorage.setItem(LAYOUT_KEY, String(w)); } catch { /* ignore */ }
+      relayout();
+    };
+    splitter.addEventListener('pointermove', move); splitter.addEventListener('pointerup', up);
+  });
+  splitter.addEventListener('dblclick', () => { work.style.removeProperty('--panel-w'); try { localStorage.removeItem(LAYOUT_KEY); } catch { /* ignore */ } relayout(); });
+}
+
+function viewControls(work) {
+  const wide = h('button.btn.sm.ghost', { title: 'Hide the question panel and give the spreadsheet the whole width' }, '⇤ Wider');
+  const full = h('button.btn.sm.ghost', { title: 'Full screen (Esc to leave)' }, '⛶ Full screen');
+  const sync = () => {
+    const isMax = work.classList.contains('max');
+    wide.textContent = isMax ? '⇥ Show question' : '⇤ Wider';
+    full.textContent = document.fullscreenElement === work ? '✕ Exit full screen' : '⛶ Full screen';
+  };
+  wide.addEventListener('click', () => { work.classList.toggle('max'); sync(); relayout(); });
+  full.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else if (work.requestFullscreen) await work.requestFullscreen();
+      else if (work.webkitRequestFullscreen) work.webkitRequestFullscreen();
+    } catch { /* not allowed */ }
+  });
+  const onFs = () => { sync(); relayout(); };
+  document.addEventListener('fullscreenchange', onFs);
+  document.addEventListener('webkitfullscreenchange', onFs);
+  return h('span', { style: { display: 'inline-flex', gap: '4px' } }, wide, full);
+}
+
 // ------------------------------------------------------------------ answer panel (left side)
 function excelFields(q, saved = []) {
   return q.answers.map((a, i) => {
@@ -135,7 +185,9 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
   const panel = h('div.panel');
   const bar = h('div.bench-bar');
   const body = h('div.bench-body');
-  const work = h('div.work', { class: exam ? 'with-exam' : '' }, panel, h('div.bench', {}, bar, body));
+  const splitter = h('div.splitter', { title: 'Drag to resize', role: 'separator', 'aria-orientation': 'vertical' });
+  const work = h('div.work', { class: exam ? 'with-exam' : '' }, panel, splitter, h('div.bench', {}, bar, body));
+  initLayout(work, splitter);
   if (exam) main.append(work); else main.replaceChildren(work);
 
   const { prev, next, index, total } = neighbours(q);
@@ -213,6 +265,7 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
 
   if (q.tool === 'excel') mountExcel(body, bar, q);
   else mountSql(body, bar, q, () => {});
+  bar.append(viewControls(work));
   return { q };
 }
 

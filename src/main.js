@@ -9,11 +9,13 @@ import { renderExams, renderMockExam } from './pages/exam.js';
 import { renderInterp, renderInterpList } from './pages/interp.js';
 import { renderProgress } from './pages/progress.js';
 import { renderAbout } from './pages/about.js';
+import { renderFormulas } from './pages/formulas.js';
 
 const nav = h('nav.nav', {},
   h('a', { href: '#/', 'data-k': 'home' }, 'Practice'),
   h('a', { href: '#/exams', 'data-k': 'exams' }, 'Mock exams'),
   h('a', { href: '#/interpretation', 'data-k': 'interp' }, 'Interpretation'),
+  h('a', { href: '#/formulas', 'data-k': 'formulas' }, 'Formulas'),
   h('a', { href: '#/progress', 'data-k': 'progress' }, 'Progress'),
   h('a', { href: '#/about', 'data-k': 'about' }, 'How it works'));
 const pill = h('a.pill', { href: '#/progress' });
@@ -33,7 +35,7 @@ function route() {
   nav.classList.remove('open');
   const parts = (location.hash.replace(/^#\/?/, '') || '').split('/').map(decodeURIComponent);
   const [p0, ...rest] = parts;
-  const key = { '': 'home', case: 'home', q: 'home', exams: 'exams', exam: 'exams', interpretation: 'interp', interp: 'interp', progress: 'progress', about: 'about' }[p0] || 'home';
+  const key = { '': 'home', case: 'home', q: 'home', exams: 'exams', exam: 'exams', interpretation: 'interp', interp: 'interp', progress: 'progress', about: 'about', formulas: 'formulas' }[p0] || 'home';
   nav.querySelectorAll('a').forEach((a) => a.classList.toggle('on', a.dataset.k === key));
   window.__examGuard = null;
   window.scrollTo(0, 0);
@@ -46,6 +48,7 @@ function route() {
     case 'interp': renderInterp(main, rest[0]); break;
     case 'progress': renderProgress(main); break;
     case 'about': renderAbout(main); break;
+    case 'formulas': renderFormulas(main, rest[0]); break;
     default: renderHome(main);
   }
   document.title = ({ q: `${rest[0]} · Exam Studio`, case: 'Case · Exam Studio' }[p0]) || 'Exam Studio – Data Analytics in Accounting';

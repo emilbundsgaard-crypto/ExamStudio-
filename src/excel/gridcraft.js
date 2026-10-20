@@ -83,7 +83,9 @@ export function run(command, params = {}) {
 }
 
 function activeSheetName(info) {
-  return info?.activeSheet || info?.active || info?.sheets?.find?.((s) => s.active)?.name || null;
+  const i = info?.activeSheet;
+  if (typeof i === 'number') return info.sheets?.[i]?.name || null;
+  return typeof i === 'string' ? i : null;
 }
 
 /** Value of the selected cell: { value, address, formula } */
