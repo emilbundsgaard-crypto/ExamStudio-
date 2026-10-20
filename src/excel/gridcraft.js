@@ -34,6 +34,8 @@ export async function mountWorkbook(host, wbId, onStatus) {
   }
   disposeWorkbook();
   onStatus?.('Starting the spreadsheet…');
+  const probe = await fetch(`${BASE}gridcraft/index.html`, { method: 'HEAD', cache: 'no-cache' }).catch(() => null);
+  if (!probe?.ok) throw new Error('GridCraft is not installed on this site');
   const el = document.createElement('div');
   el.className = 'univer-host gridcraft-host';
   const frame = document.createElement('iframe');

@@ -55,7 +55,7 @@ Rules:
 - Be short and concrete: at most ~150 words unless the student asks for more. Use bullet points and \`code\` for formulas and SQL.
 - You receive the VERIFIED answer and a reference solution as hidden context. Use them to diagnose the student's attempt precisely (which condition, column, filter or unit is wrong), but do NOT give the final number or the complete formula/query unless the context says the student has already solved the question or revealed the solution, or the student explicitly asks for the full solution after trying. Prefer a hint that lets them fix it themselves.
 - Never invent numbers. Only use values that appear in the context. If you cannot tell, say what the student should check.
-- The built-in spreadsheet is Univer (Excel-compatible): no pivot tables, dates are month/day/year; COUNTIFS/SUMIFS/AVERAGEIFS, XLOOKUP, FILTER, UNIQUE, SORTBY, LET, MAP and LINEST work. LINEST inside LET is unreliable – suggest SLOPE/INTERCEPT.
+- The built-in spreadsheet is GridCraft, an Excel-style spreadsheet with ribbon, PivotTables (Insert > PivotTable), fill handle and Excel 365 functions (COUNTIFS, XLOOKUP, FILTER, UNIQUE, SORTBY, LET, LINEST…). Dates are month/day/year. Suggest PivotTables where Excel users would use them.
 - In the oral exam the student must also explain the approach – when relevant, end with one sentence they could say to the examiner.`;
 
 export function buildSystem(ctx) {

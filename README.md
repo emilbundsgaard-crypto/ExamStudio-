@@ -16,15 +16,18 @@ Practice website for the oral exam in *Data Analytics in Accounting* (SDU). 278 
 
 ## The added functionality: verified answers, in a built-in workbench
 
-On the original site, only the regression questions have answers. The 400 Excel and SQL questions have none, just an AI tutor. Here every question can be solved in a **built-in spreadsheet** (Univer, Excel-compatible formulas) or a **SQL editor** (SQLite in the browser) running on the actual course files. You can also work in desktop Excel or DB Browser and type the answer. Either way, the answer is **checked against a value computed from the course data**, and typical mistakes are recognised and explained.
+On the original site, only the regression questions have answers. The 400 Excel and SQL questions have none, just an AI tutor. Here every question can be solved in a **built-in spreadsheet** ([GridCraft](https://github.com/storytold/gridcraft), Excel-style with PivotTables, fill handle and 500+ functions; Univer as a fallback without WebGL2) or a **SQL editor** (SQLite in the browser) running on the actual course files. You can also work in desktop Excel or DB Browser and type the answer. Either way, the answer is **checked against a value computed from the course data**, and typical mistakes are recognised and explained.
 
 * **Excel questions** have one or more answer fields. Every expected value is computed in pandas, and every question has a reference formula. `tools/verify.mjs` evaluates each formula in the browser's own spreadsheet engine and compares it with pandas (270 fields).
 * **SQL questions** are graded by **comparing result sets**, not SQL text. Any correct query passes. Row order is checked only when the question asks for a sort. Each reference query is run in SQLite (Python) and again in sql.js.
 * **185 known wrong approaches** (e.g. hours vs. days, all event types instead of shooting permits, refunds included, case-sensitive `=` on vendor names, missing `DISTINCT`) are executed too. If a student's answer matches one, the site says what probably went wrong.
+* **Every reference formula also runs through GridCraft's engine** (`tools/verify_gridcraft.py`): 270 of 270 match.
 * The original answer keys (PwC Excel `solutions.xlsx`, PwC SQL answers) are asserted in the build. All 20 Excel answers and every SQL answer the key gives are reproduced.
 * **Progress tracking** counts *verified correct* answers per case and per skill. It also tracks the first-try rate and the mistakes that were recognised, plus timed **mock exams** (3 Excel + 3 SQL, 8 minutes, graded at the end) and interpretation exams. Everything is stored locally in the browser.
 
-Verifying the reference formulas found a real bug in the spreadsheet engine: `AVERAGE(FILTER(...))` returned the first value, and `COUNTIFS(range, UNIQUE(range))` returned a single count. `tools/patch-univer.mjs` fixes it at install time, so the engine behaves like Excel 365.
+GridCraft is embedded in an iframe through its own host bridge (`?host=parent`). `vendor/gridcraft-host-run.patch` adds one message (`gridcraft:run`) so the page can read the selected cell (the "⇦ cell" button) and insert formulas. It is built by `.github/workflows/gridcraft.yml` into the `gridcraft-dist` branch.
+
+In the Univer fallback, verifying the reference formulas found a real bug in the spreadsheet engine: `AVERAGE(FILTER(...))` returned the first value, and `COUNTIFS(range, UNIQUE(range))` returned a single count. `tools/patch-univer.mjs` fixes it at install time, so the engine behaves like Excel 365.
 
 ### Paragraph for the hand-in: why it is an improvement
 
