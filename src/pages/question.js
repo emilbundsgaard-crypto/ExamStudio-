@@ -96,7 +96,13 @@ async function mountExcel(body, bar, q) {
     const mod = await loadExcel();
     await mod.mountWorkbook(body, q.wb, (s) => { const m = cover.querySelector('.msg'); if (m && s) m.textContent = s; });
     window.dispatchEvent(new Event('resize'));
-    const note = bar.querySelector('.engine-note'); if (note && mod.engineName() === 'Univer') note.textContent = 'Excel-compatible formulas (basic mode – your browser lacks WebGL2) · scratch sheet "Work"';
+    const note = bar.querySelector('.engine-note');
+    if (note && mod.engineName() === 'Univer') {
+      if (mod.gridcraftCrashed()) {
+        note.replaceChildren('Basic spreadsheet – the full spreadsheet crashed in this browser last time. ',
+          h('a', { href: '#', onClick: (e) => { e.preventDefault(); mod.retryGridcraft(); mod.disposeWorkbook(); body.replaceChildren(); mountExcel(body, bar, q); } }, 'Try the full spreadsheet again'));
+      } else note.textContent = 'Excel-compatible formulas (basic mode – your browser lacks WebGL2) · scratch sheet "Work"';
+    }
   } catch (e) { cover.replaceChildren(h('div.err', {}, `Could not load the spreadsheet: ${e.message}`)); return; }
   cover.remove();
 }

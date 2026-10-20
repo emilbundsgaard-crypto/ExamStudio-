@@ -40,7 +40,8 @@ export async function mountWorkbook(host, wbId, onStatus) {
   el.className = 'univer-host gridcraft-host';
   const frame = document.createElement('iframe');
   frame.title = 'Spreadsheet';
-  frame.src = `${BASE}gridcraft/index.html?host=parent&author=Student`;
+  // WebGL2 is GridCraft's mature backend; WebGPU in Safari crashed the tab.
+  frame.src = `${BASE}gridcraft/index.html?host=parent&webgl&author=Student`;
   frame.setAttribute('allow', 'clipboard-read; clipboard-write');
   el.appendChild(frame);
   host.appendChild(el);
