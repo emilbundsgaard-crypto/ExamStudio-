@@ -4,13 +4,15 @@ import { caseById, WORKBOOK_TITLES, DB_TITLES } from '../data/cases.js';
 import { checkExcel, compareSql, serialToText } from '../check.js';
 import { qState, recordAttempt, markRevealed } from '../store.js';
 import { openDb, exec, currentDb } from '../sql/engine.js';
+import { tutorBox } from '../tutor.js';
 
 const drafts = (() => { try { return JSON.parse(localStorage.getItem('examstudio.drafts') || '{}'); } catch { return {}; } })();
 const saveDrafts = () => { try { localStorage.setItem('examstudio.drafts', JSON.stringify(drafts)); } catch { /* ignore */ } };
 const lastResult = new Map(); // qid -> {columns, values}
 
 let excelMod = null; // lazily loaded (Univer is large)
-const loadExcel = () => (excelMod ??= import('../excel/workbench.js'));
+let excelSync = null; // resolved module, for synchronous use
+const loadExcel = () => (excelMod ??= import('../excel/workbench.js').then((m) => (excelSync = m)));
 
 // ------------------------------------------------------------------ workbench (right side)
 let sqlUI = null;
@@ -155,6 +157,7 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
   const hintBtn = q.hint && !exam ? h('button.btn.ghost', {}, 'Hint') : null;
   const solBtn = !exam ? h('button.btn.ghost', {}, 'Show solution') : null;
   panel.append(h('div.actions', {}, checkBtn, hintBtn, solBtn), feedback, extra);
+  if (!exam) panel.append(tutorBox({ getCtx: () => tutorContext(q, fields, feedback), starters: q.tool === 'excel' ? ['Give me a hint', 'Why is my answer wrong?', 'Which functions should I use?'] : ['Give me a hint', 'Why is my result wrong?', 'Explain the JOIN I need'] }));
 
   hintBtn?.addEventListener('click', () => { extra.replaceChildren(h('div.hint', {}, h('b', {}, 'Hint: '), q.hint)); });
   solBtn?.addEventListener('click', () => {
@@ -209,6 +212,36 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
   if (q.tool === 'excel') mountExcel(body, bar, q);
   else mountSql(body, bar, q, () => {});
   return { q };
+}
+
+function tutorContext(q, fields, feedback) {
+  const st = qState(q.id);
+  const cs = caseById(q.case);
+  const ctx = {
+    course_case: `${cs.title} (${cs.source})`, question_id: q.id, question: q.prompt, tool: q.tool === 'excel' ? 'Excel (built-in spreadsheet or desktop Excel)' : 'SQL (SQLite)',
+    skills: q.skills, hint_on_site: q.hint || null, extra_explanation: q.explain || null,
+    student_has_solved_or_revealed: st.status === 'correct' || !!st.revealed,
+    last_check_feedback_shown_to_student: feedback.textContent.trim() || 'not checked yet',
+  };
+  if (q.tool === 'excel') {
+    ctx.verified_answers = q.answers.map((a) => ({ label: a.label, value: a.kind === 'datetime' || a.kind === 'date' ? serialToText(a.value, a.kind === 'datetime') : a.value, reference_formula: a.formula }));
+    ctx.known_mistakes = (q.diag || []).map((d) => ({ field: q.answers[d.a].label, wrong_value: d.value, meaning: d.msg }));
+    ctx.student_typed_answers = fields.map((f) => ({ label: f.a.label, typed: f.input.value || '(empty)' }));
+    const mod = excelSync;
+    if (mod) { ctx.workbook = mod.describeWorkbook(); const c = mod.activeCell(); if (c) ctx.student_selected_cell = { address: c.address, formula: c.formula, value: c.value }; }
+  } else {
+    const db = currentDb();
+    ctx.database = db ? db.schema.map((t) => ({ table: t.name, rows: t.rows, columns: t.cols.map((c) => `${c.name} ${c.type}`) })) : q.db;
+    ctx.reference_query = q.ref;
+    ctx.expected_result = { rows: q.sig.rows, columns: q.cols, first_rows: q.preview.slice(0, 5) };
+    ctx.known_mistakes = (q.variants || []).map((v) => v.msg);
+    ctx.ordering_matters = !!q.order;
+    const ui = sqlUI;
+    ctx.student_query = ui?.editor.value || '(empty)';
+    const r = lastResult.get(q.id);
+    ctx.student_last_result = r ? { columns: r.columns, rows: r.values.length, first_rows: r.values.slice(0, 5) } : 'not run yet';
+  }
+  return ctx;
 }
 
 export function solution(q) {

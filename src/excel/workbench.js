@@ -33,7 +33,7 @@ export async function mountWorkbook(host, wbId, onStatus) {
     presets: [UniverSheetsCorePreset({ container: el, disableTextFormatAlert: true, disableTextFormatMark: true }), UniverSheetsFilterPreset(), UniverSheetsSortPreset()],
   });
   univerAPI.createWorkbook(toUniverData(data));
-  inst = { wbId, univer, univerAPI, host: el, sheets: data.sheets.map((s) => s.name) };
+  inst = { wbId, univer, univerAPI, host: el, sheets: data.sheets.map((s) => ({ name: s.name, headers: s.rows[0], rows: s.rows.length - 1, example: s.rows[1] })) };
   onStatus?.('');
   return inst;
 }
@@ -70,3 +70,6 @@ export function insertFormula(formula) {
   ws.setActiveRange?.(r);
   return `Work!A${row + 1}`;
 }
+
+/** Sheet names, headers and row counts – context for the AI tutor. */
+export function describeWorkbook() { return inst ? inst.sheets : null; }

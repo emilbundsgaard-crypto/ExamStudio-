@@ -15,20 +15,21 @@ self.onmessage = async (e) => {
   try {
     if (type === 'open') {
       SQL ??= await initSqlJs({ locateFile: () => wasmUrl });
-      const res = await fetch(e.data.url);
-      if (!res.ok) throw new Error(`Download failed (${res.status})`);
-      const total = Number(res.headers.get('content-length')) || 0;
-      const reader = res.body.getReader();
-      const chunks = []; let got = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value); got += value.length;
-        self.postMessage({ id, type: 'progress', got, total });
+      const chunks = []; let got = 0; let total = 0;
+      for (const url of e.data.urls) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Download failed (${res.status})`);
+        total += Number(res.headers.get('content-length')) || 0;
+        const reader = res.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value); got += value.length;
+          self.postMessage({ id, type: 'progress', got, total: e.data.urls.length > 1 ? 0 : total });
+        }
       }
       const gz = new Uint8Array(got); let o = 0; for (const c of chunks) { gz.set(c, o); o += c.length; }
-      const enc = res.headers.get('content-encoding');
-      const bytes = gz[0] === 0x1f && gz[1] === 0x8b && !(enc && enc.includes('gzip')) ? await inflate(gz) : gz;
+      const bytes = gz[0] === 0x1f && gz[1] === 0x8b ? await inflate(gz) : gz;
       db?.close();
       db = new SQL.Database(bytes);
       const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")[0]?.values.map((r) => r[0]) || [];

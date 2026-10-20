@@ -12,7 +12,7 @@ Practice website for the oral exam in *Data Analytics in Accounting* (SDU). 278 
 | SQL part 2 | P-card audit | SQL | 26 |
 | Interpretation | Regressions estimated on the course datasets | – | 8 exams × 4 |
 
-**Live site:** https://emilbundsgaard-crypto.github.io/ExamStudio-/
+**Live site (with AI tutor):** https://clouterx.com/StudioExam/  ·  static mirror without tutor: https://emilbundsgaard-crypto.github.io/ExamStudio-/
 
 ## The added functionality: verified answers, in a built-in workbench
 
@@ -33,6 +33,23 @@ Verifying the reference formulas found a real bug in the spreadsheet engine: `AV
 ### Paragraph for the hand-in: why the starting materials make this case harder
 
 > Unlike the earlier cases, the starting material is not one dataset with a given ground truth but nine heterogeneous sources: .xlsx, an .xlsm with macros, comma- and pipe-delimited text files and five SQLite databases (the largest 94 MB, with 1.2 million star credits in movies.db), with the instructions spread over .docx and .pptx files. Most of the tasks come with no answer key at all, and the keys that exist are incomplete ("approximately 55.5 years", "256 tracks have been downloaded twice"), so the ground truth had to be produced and proved correct before any question could be checked. Many tasks are ambiguous in ways that change the number – which date defines "since 2013", whether "containing AMAZON" is case-sensitive, whether the longest last name refers to customers (12 characters) or employees (8, the key's answer) – and the ETL data is deliberately messy (an unquoted comma in "Apple, Inc.", "N/A" stored as text instead of blanks, "We"/"Mo" pay codes). Finally, the files are far too large to paste into an AI model, so the AI cannot simply read off the answers; every value had to be computed in code and cross-checked between two engines.
+
+## AI tutor (Gemini)
+
+Every practice question has an AI tutor. It gets the question, the dataset's columns, the student's formula or query, their result, the checker's feedback **and the verified answer**, so it can point at the actual mistake without inventing numbers. It is told not to reveal the final answer until the student has solved the question or viewed the solution.
+
+* `server/api/ask.php` is a small PHP proxy. The Gemini key stays on the server in `api/.env` and is never sent to the browser. It also applies per-IP and per-day limits.
+* The browser retries a failed Gemini call **up to 20 times, 10 seconds apart**, and shows a countdown. Retries happen in the browser, so the host's PHP time limit is never hit. A wrong key or model name is not retried, because retrying cannot fix it.
+
+## Deploy to a PHP web host (Simply.com)
+
+```bash
+./tools/package-upload.sh      # -> upload/StudioExam/ (static site + api/ + .htaccess)
+```
+
+1. Upload the **contents** of `upload/StudioExam/` to `public_html/StudioExam/`. Hidden files must be included: `.htaccess`, `api/.htaccess` and `api/.env`.
+2. Put your key in `api/.env` (`GEMINI_API_KEY=…`) and check `GEMINI_MODEL`.
+3. Check that `https://<domain>/StudioExam/api/ask.php` shows `"configured":true` and that `https://<domain>/StudioExam/api/.env` gives 403 Forbidden.
 
 ## Run locally
 

@@ -22,10 +22,19 @@ function call(msg, onProgress) {
 
 export const currentDb = () => current;
 
+// Large databases are stored as numbered 20 MB parts (see tools/split_dbs.py).
+let partsInfo = null;
+export async function dbUrls(name) {
+  partsInfo ??= fetch(`${BASE}data/db/parts.json`, { cache: 'no-cache' }).then((r) => r.json()).catch(() => ({}));
+  const n = (await partsInfo)[name] || 0;
+  const base = new URL(`${BASE}data/db/${name}.db.gz`, location.href).href;
+  return n ? Array.from({ length: n }, (_, i) => `${base}.${String(i).padStart(3, '0')}`) : [base];
+}
+
 export async function openDb(name, onProgress) {
   if (current?.name === name) return current;
   if (opening?.name === name) return opening.promise;
-  const promise = call({ type: "open", url: new URL(`${BASE}data/db/${name}.db.gz`, location.href).href }, onProgress).then((r) => { current = { name, schema: r.schema }; opening = null; return current; });
+  const promise = dbUrls(name).then((urls) => call({ type: 'open', urls }, onProgress)).then((r) => { current = { name, schema: r.schema }; opening = null; return current; });
   opening = { name, promise };
   return promise;
 }
@@ -40,11 +49,11 @@ export function exec(sql) {
 
 /** Decompress a course database in the browser and hand it to the user as the original .db file. */
 export async function downloadDb(name, filename) {
-  const res = await fetch(`${BASE}data/db/${name}.db.gz`);
-  const enc = res.headers.get('content-encoding');
-  let blob;
-  if (enc && enc.includes('gzip')) blob = await res.blob();
-  else blob = await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).blob();
+  const bufs = [];
+  for (const u of await dbUrls(name)) { const r = await fetch(u); if (!r.ok) throw new Error(`Download failed (${r.status})`); bufs.push(new Uint8Array(await r.arrayBuffer())); }
+  const gz = new Blob(bufs);
+  const head = new Uint8Array(await gz.slice(0, 2).arrayBuffer());
+  const blob = head[0] === 0x1f && head[1] === 0x8b ? await new Response(gz.stream().pipeThrough(new DecompressionStream('gzip'))).blob() : gz;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([blob], { type: 'application/vnd.sqlite3' }));
   a.download = filename; document.body.appendChild(a); a.click(); a.remove();

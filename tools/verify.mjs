@@ -64,7 +64,12 @@ if (sq.length) {
   const dbs = {};
   const sig = (cols, rows) => ({ rows: rows.length, cols: cols.length, sums: cols.map((_, j) => { const c = rows.map((r) => r[j]).filter((x) => x !== null); return c.length && c.every((x) => typeof x === 'number') ? Math.round(c.reduce((a, b) => a + b, 0) * 100) / 100 : null; }) });
   for (const q of sq) {
-    if (!dbs[q.db]) dbs[q.db] = new SQL.Database(zlib.gunzipSync(fs.readFileSync(path.join(root, `public/data/db/${q.db}.db.gz`))));
+    if (!dbs[q.db]) {
+      const dir = path.join(root, 'public/data/db');
+      const n = JSON.parse(fs.readFileSync(path.join(dir, 'parts.json'), 'utf8'))[q.db] || 0;
+      const gz = n ? Buffer.concat(Array.from({ length: n }, (_, i) => fs.readFileSync(path.join(dir, `${q.db}.db.gz.${String(i).padStart(3, '0')}`)))) : fs.readFileSync(path.join(dir, `${q.db}.db.gz`));
+      dbs[q.db] = new SQL.Database(zlib.gunzipSync(gz));
+    }
     const t0 = Date.now();
     const r = dbs[q.db].exec(q.ref);
     const cols = r[0]?.columns ?? [], rows = r[0]?.values ?? [];
