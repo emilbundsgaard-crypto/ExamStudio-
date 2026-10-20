@@ -80,6 +80,16 @@ export function createPivotTool(ctx) {
       }
     }
     for (const f of res.formats) if (block[f.r]?.[f.c]) st(f.r, f.c).n = { pattern: f.fmt };
+    // report filter cells (B1, B2 …) work like Excel's drop-down: click to choose items
+    p.filterCells = [];
+    res.styles.filter((s) => s.kind === 'filter').forEach((s, i) => {
+      const cell = block[s.r]?.[1];
+      if (!cell) return;
+      cell.v = `${cell.v}  ▾`;
+      const o = st(s.r, 1); o.bl = 0; o.bg = { rgb: '#F3F6FA' };
+      o.bd = { t: { s: 1, cl: { rgb: '#9AA8B8' } }, b: { s: 1, cl: { rgb: '#9AA8B8' } }, l: { s: 1, cl: { rgb: '#9AA8B8' } }, r: { s: 1, cl: { rgb: '#9AA8B8' } } };
+      p.filterCells.push({ r: p.at.r + s.r, c: p.at.c + 1, f: p.cfg.filters[i] });
+    });
     ws.getRange(p.at.r, p.at.c, height, width).setValues(block);
     p.extent = { h: height, w: width };
     p.lastRows = res.rowsUsed;
@@ -226,6 +236,7 @@ export function createPivotTool(ctx) {
       el('div.pv-small', {}, 'Choose fields to add to report:'), search, list,
       el('div.pv-small', {}, 'Drag fields between areas below:'),
       el('div.pv-areas', {}, AREAS.map(([a, t, i]) => box(a, t, i))),
+      cfg.filters.length ? el('div.pv-hint', {}, 'Report filter: click the ▾ cell next to the field name in the sheet (or ▾ on the field above → Filter…) and tick the items to include.', !cfg.values.length ? ' Then add a field to Rows and one to Σ Values – the filter only changes what they count.' : '') : null,
       el('div.pv-opts', {},
         el('label', {}, 'Report Layout ', el('select', { onChange: (e) => { cfg.layout = e.target.value; changed(); } }, el('option', { value: 'compact', selected: cfg.layout === 'compact' || undefined }, 'Compact Form'), el('option', { value: 'tabular', selected: cfg.layout === 'tabular' || undefined }, 'Tabular Form'))),
         el('label', {}, el('input', { type: 'checkbox', checked: cfg.grandRows || undefined, onChange: (e) => { cfg.grandRows = e.target.checked; changed(); } }), ' Grand Totals for Columns'),
@@ -331,6 +342,16 @@ export function createPivotTool(ctx) {
       const name = ctx.api.getActiveWorkbook().getActiveSheet().getSheetName();
       const p = pivots.find((x) => x.sheet === name);
       if (p) showPane(p); else if (pane) hidePane();
+    });
+  } catch { /* events unavailable */ }
+  try {
+    ctx.api.addEvent(ctx.api.Event.CellClicked, (e) => {
+      const name = ctx.api.getActiveWorkbook().getActiveSheet().getSheetName();
+      const p = pivots.find((x) => x.sheet === name);
+      const fc = p?.filterCells?.find((x) => x.r === e.row && x.c === e.column);
+      if (!fc) return;
+      if (current !== p) showPane(p);
+      setTimeout(() => filterDialog(fc.f), 0);
     });
   } catch { /* events unavailable */ }
 

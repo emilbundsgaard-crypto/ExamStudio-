@@ -320,3 +320,4 @@ select.sel { -webkit-appearance: none; appearance: none; height: 36px; padding: 
 .pv-mi:disabled { color: #aab; cursor: default; }
 .pv-sep { height: 1px; background: var(--line); margin: 3px 0; }
 @media (max-width: 760px) { .bench-body.with-pivot > .univer-host { right: 0; bottom: 55%; } .pv-pane { top: 45%; width: 100%; border-left: 0; border-top: 1px solid var(--line); } }
+.pv-hint { font-size: .76rem; background: #fff8e6; border: 1px solid #f0dca8; border-radius: 4px; padding: 6px 8px; color: #5c4a1a; }
