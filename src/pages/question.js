@@ -4,6 +4,7 @@ import { caseById, WORKBOOK_TITLES, DB_TITLES } from '../data/cases.js';
 import { checkExcel, compareSql, serialToText } from '../check.js';
 import { qState, recordAttempt, markRevealed } from '../store.js';
 import { openDb, exec, currentDb } from '../sql/engine.js';
+import { enhanceEditor, createBrowse, createStructure, statements, grid, toCsv, download } from '../sql/dbbrowser.js';
 import { tutorBox } from '../tutor.js';
 
 const drafts = (() => { try { return JSON.parse(localStorage.getItem('examstudio.drafts') || '{}'); } catch { return {}; } })();
@@ -15,38 +16,105 @@ let excelSync = null; // resolved module
 const loadExcel = () => (excelMod ??= import('../excel/sheet.js').then((m) => (excelSync = m)));
 
 // ------------------------------------------------------------------ workbench (right side)
+// SQL: a small "DB Browser for SQLite" – Execute SQL / Browse Data / Database Structure.
+const HIST_KEY = 'examstudio.sqlHistory';
+const history = (() => { try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch { return []; } })();
+const saveHistory = () => { try { localStorage.setItem(HIST_KEY, JSON.stringify(history.slice(0, 30))); } catch { /* ignore */ } };
+
 let sqlUI = null;
 function sqlBench() {
   if (sqlUI) return sqlUI;
   const schema = h('div.schema');
-  const editor = h('textarea.editor', { spellcheck: 'false', 'aria-label': 'SQL editor', placeholder: 'SELECT … FROM …' });
-  const status = h('span.muted');
-  const runBtn = h('button.btn.primary.sm', { title: 'Ctrl/⌘ + Enter' }, '▶ Run');
+  const editor = h('textarea.editor', { spellcheck: 'false', autocomplete: 'off', autocapitalize: 'off', 'aria-label': 'SQL editor', placeholder: 'SELECT … FROM …' });
+  const status = h('span.muted.db-status');
+  const runBtn = h('button.btn.primary.sm', { title: 'Execute all (Ctrl/⌘ + Enter or F5). If text is selected, only the selection runs.' }, '▶ Execute');
+  const curBtn = h('button.btn.sm', { title: 'Execute the statement at the cursor (Shift + F5 or Ctrl/⌘ + Shift + Enter)' }, '▶| Current');
+  const histSel = h('select.db-in.hist', { title: 'Query history (this browser)' });
+  const csvBtn = h('button.btn.sm', { title: 'Download the result as CSV', disabled: true }, '⤓ CSV');
   const results = h('div.results', {}, h('div.empty', {}, 'Run a query to see the result here.'));
-  const root = h('div.sqlwrap', {}, schema, h('div.sqlmain', {}, editor, h('div.runbar', {}, runBtn, h('span.muted.small', {}, 'Ctrl/⌘ + Enter'), h('span', { style: { flex: 1 } }), status), results));
-  sqlUI = { root, schema, editor, status, runBtn, results, qid: null, onResult: null };
+  const getSchema = () => currentDb()?.schema || [];
+  const ed = enhanceEditor(editor, getSchema);
+  const execPane = h('div.db-pane.db-exec', {}, ed.wrap,
+    h('div.runbar', {}, runBtn, curBtn, h('span.muted.small.kbd', {}, 'Ctrl/⌘ + Enter · Ctrl + Space = suggestions'), h('span', { style: { flex: 1 } }), status, histSel, csvBtn), results);
+  const tabs = h('div.db-tabs', { role: 'tablist' });
+  const panes = h('div.db-panes', {}, execPane);
+  const root = h('div.sqlwrap', {}, schema, h('div.sqlmain', {}, tabs, panes));
+  sqlUI = { root, schema, editor, status, runBtn, results, qid: null, onResult: null, ed };
+
+  const insertSql = (text) => {
+    const pre = editor.value.replace(/\s*$/, '');
+    editor.value = `${pre}${pre ? '\n\n' : ''}${text}`;
+    editor.dispatchEvent(new Event('input'));
+    showTab('exec');
+    editor.focus();
+    editor.setSelectionRange(editor.value.length - text.length, editor.value.length);
+    editor.scrollTop = editor.scrollHeight;
+  };
+  const browse = createBrowse({ getSchema, onShowSql: (sql) => insertSql(`-- from Browse Data\n${sql}`) });
+  const structure = createStructure({
+    onBrowse: (t) => { showTab('browse'); browse.open(t); },
+    onInsert: (c) => { showTab('exec'); editor.focus(); editor.setRangeText(c, editor.selectionStart, editor.selectionEnd, 'end'); editor.dispatchEvent(new Event('input')); },
+  });
+  panes.append(browse.root, structure.root);
+  const TABS = [['exec', 'Execute SQL', execPane], ['browse', 'Browse Data', browse.root], ['struct', 'Database Structure', structure.root]];
+  function showTab(id) {
+    sqlUI.tab = id;
+    for (const [k, , el] of TABS) el.hidden = k !== id;
+    tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+    if (id === 'browse') browse.show();
+    if (id === 'struct') structure.render(getSchema(), currentDb()?.name);
+  }
+  tabs.append(...TABS.map(([k, label]) => h('button.db-tab', { role: 'tab', 'data-tab': k, onClick: () => showTab(k) }, label)));
+  sqlUI.showTab = showTab; sqlUI.browse = browse; sqlUI.structure = structure;
+  showTab('exec');
+
   editor.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
-    if (e.key === 'Tab') { e.preventDefault(); const s = editor.selectionStart; editor.setRangeText('  ', s, editor.selectionEnd, 'end'); }
+    if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) { e.preventDefault(); run(e.shiftKey ? 'current' : 'all'); return; }
+    if (e.key === 'Tab') { e.preventDefault(); const s = editor.selectionStart; editor.setRangeText('  ', s, editor.selectionEnd, 'end'); editor.dispatchEvent(new Event('input')); }
   });
   editor.addEventListener('input', () => { if (sqlUI.qid) { drafts[sqlUI.qid] = editor.value; saveDrafts(); } });
-  runBtn.addEventListener('click', run);
-  async function run() {
-    const sql = editor.value.trim();
-    if (!sql) return;
-    status.textContent = 'Running…'; runBtn.disabled = true;
+  runBtn.addEventListener('click', () => run('all'));
+  curBtn.addEventListener('click', () => run('current'));
+  const drawHistory = () => histSel.replaceChildren(h('option', { value: '' }, `History (${history.length})`),
+    ...history.map((x, i) => h('option', { value: String(i) }, x.sql.replace(/\s+/g, ' ').slice(0, 70))));
+  drawHistory();
+  histSel.addEventListener('change', () => { const x = history[Number(histSel.value)]; histSel.value = ''; if (x) insertSql(`-- from history\n${x.sql}`); });
+  let last = null;
+  csvBtn.addEventListener('click', () => { if (last?.columns.length) download(`${sqlUI.qid || 'result'}.csv`, toCsv(last.columns, last.values)); });
+
+  async function run(mode = 'all') {
+    let sql = editor.value;
+    const a = editor.selectionStart; const b = editor.selectionEnd;
+    if (b > a) sql = sql.slice(a, b);
+    else if (mode === 'current') {
+      const list = statements(editor.value);
+      const st = list.find((x) => a >= x.start && a <= x.end) || list.filter((x) => x.start <= a).pop() || list[0];
+      sql = st ? st.text : '';
+    }
+    if (!sql.trim() || /^(\s|--[^\n]*|\/\*[\s\S]*?\*\/|;)*$/.test(sql)) { status.textContent = 'Nothing to run – write a query first.'; return; }
+    status.textContent = 'Running…'; runBtn.disabled = true; curBtn.disabled = true;
     try {
       const r = await exec(sql);
+      last = r;
       lastResult.set(sqlUI.qid, r);
       renderResult(r);
-      status.textContent = `${r.values.length.toLocaleString('en-US')} row${r.values.length === 1 ? '' : 's'} · ${r.ms} ms`;
+      const n = r.values.length;
+      status.textContent = r.columns.length
+        ? `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'}${r.statements > 1 ? ` · last of ${r.statements} statements` : ''} · ${r.ms} ms`
+        : `Executed${r.changes ? ` · ${r.changes.toLocaleString('en-US')} rows changed` : ''} · ${r.ms} ms`;
+      csvBtn.disabled = !r.columns.length;
+      const clean = sql.trim();
+      const i = history.findIndex((x) => x.sql === clean); if (i >= 0) history.splice(i, 1);
+      history.unshift({ sql: clean, at: Date.now() }); saveHistory(); drawHistory();
+      if (r.changes) { browse.setSchema(getSchema()); structure.reset(); }
       sqlUI.onResult?.(r);
     } catch (err) {
+      last = null; csvBtn.disabled = true;
       lastResult.delete(sqlUI.qid);
       results.replaceChildren(h('div.err', {}, err.message));
       status.textContent = 'Error';
       sqlUI.onResult?.(null);
-    } finally { runBtn.disabled = false; }
+    } finally { runBtn.disabled = false; curBtn.disabled = false; }
   }
   sqlUI.run = run;
   return sqlUI;
@@ -56,27 +124,33 @@ function renderResult(r) {
   const ui = sqlBench();
   if (!r) { ui.results.replaceChildren(h('div.empty', {}, 'Run a query to see the result here.')); return; }
   if (!r.columns.length) { ui.results.replaceChildren(h('div.empty', {}, 'Statement executed (no rows returned).')); return; }
-  const max = 500;
-  const rows = r.values.slice(0, max).map((row) => h('tr', {}, row.map((v) => (v === null ? h('td.null', {}, 'NULL') : typeof v === 'number' ? h('td.num', {}, String(v)) : h('td', { title: String(v) }, String(v))))));
-  ui.results.replaceChildren(h('table', {}, h('thead', {}, h('tr', {}, r.columns.map((c) => h('th', {}, c)))), h('tbody', {}, rows)));
-  if (r.values.length > max) ui.results.append(h('div.empty', {}, `Showing the first ${max} of ${r.values.length.toLocaleString('en-US')} rows.`));
+  const max = 1000;
+  ui.results.replaceChildren(grid(r.columns, r.values, { max }));
+  if (r.values.length > max) ui.results.append(h('div.empty', {}, `Showing the first ${max.toLocaleString('en-US')} of ${r.values.length.toLocaleString('en-US')} rows – all rows are used when you check, and ⤓ CSV downloads all of them.`));
 }
 
 function renderSchema(schema) {
   const ui = sqlBench();
-  ui.schema.replaceChildren(h('div.small.muted', { style: { margin: '0 0 6px' } }, 'Tables – click a column to insert it'),
-    ...schema.map((t, i) => h('details', { open: i < 3 || undefined }, h('summary', {}, t.name, ' ', h('span.muted', {}, `(${t.rows.toLocaleString('en-US')})`)),
-      h('ul', {}, t.cols.map((c) => h('li', { onClick: () => { const e = ui.editor; e.focus(); e.setRangeText(c.name, e.selectionStart, e.selectionEnd, 'end'); e.dispatchEvent(new Event('input')); } }, c.name, ' ', h('span', {}, c.type.toLowerCase())))))));
+  const insert = (text) => { ui.showTab('exec'); const e = ui.editor; e.focus(); e.setRangeText(text, e.selectionStart, e.selectionEnd, 'end'); e.dispatchEvent(new Event('input')); };
+  ui.schema.replaceChildren(h('div.small.muted', { style: { margin: '0 0 6px' } }, 'DB Schema – click a name to insert it, ⧉ to browse'),
+    ...schema.map((t, i) => h('details', { open: i < 3 || undefined }, h('summary', {}, h('span.tname', { onClick: (e) => { e.preventDefault(); insert(t.name); } }, t.name), ' ', h('span.muted', {}, `(${t.rows.toLocaleString('en-US')})`),
+      h('button.db-open', { title: `Browse ${t.name}`, onClick: (e) => { e.preventDefault(); ui.showTab('browse'); ui.browse.open(t.name); } }, '⧉')),
+    h('ul', {}, t.cols.map((c) => h('li', { onClick: () => insert(c.name) }, c.name, ' ', h('span', {}, c.type.toLowerCase())))))));
+  ui.browse.setSchema(schema);
+  ui.structure.reset();
+  if (ui.tab === 'struct') ui.structure.render(schema, currentDb()?.name);
+  ui.ed.refresh();
 }
 
 async function mountSql(body, bar, q, onResult) {
   const ui = sqlBench();
   ui.qid = q.id; ui.onResult = onResult;
   ui.editor.value = drafts[q.id] ?? `-- ${q.id}: write your query below\n`;
+  ui.ed.paint();
   renderResult(lastResult.get(q.id));
   ui.status.textContent = '';
   body.append(ui.root);
-  bar.replaceChildren(h('span.tag.sql', {}, 'SQLite'), h('b', {}, DB_TITLES[q.db]), h('span.muted', {}, 'runs in your browser – nothing is uploaded'), h('span.spacer'));
+  bar.replaceChildren(h('span.tag.sql', {}, 'SQLite'), h('b', {}, DB_TITLES[q.db]), h('span.muted', {}, 'DB Browser-style workbench · runs in your browser'), h('span.spacer'));
   if (currentDb()?.name !== q.db) {
     const cover = h('div.loading', {}, h('div', {}, h('div.spin'), h('div', {}, `Loading ${DB_TITLES[q.db]}…`)));
     body.append(cover);
@@ -239,7 +313,7 @@ export function renderQuestion(main, qid, { exam = null } = {}) {
     } else {
       const mine = lastResult.get(q.id);
       if (exam) { if (!mine) { toast('Run your query first.'); return; } exam.save(q.id, mine); toast('Result saved as your answer'); return; }
-      if (!mine) { feedback.replaceChildren(h('div.feedback.mid', {}, 'Run your query first (▶ Run or Ctrl/⌘ + Enter), then check.')); return; }
+      if (!mine) { feedback.replaceChildren(h('div.feedback.mid', {}, 'Run your query first (▶ Execute or Ctrl/⌘ + Enter), then check.')); return; }
       checkBtn.disabled = true; checkBtn.textContent = 'Checking…';
       try {
         const expected = await exec(q.ref);
@@ -310,7 +384,7 @@ export function solution(q) {
       q.explain ? h('p.small', {}, q.explain) : null);
   }
   return h('div.solution', {}, h('b', {}, 'Reference query'), h('pre', {}, q.ref),
-    h('button.btn.sm', { onClick: () => { const ui = sqlBench(); ui.editor.value = q.ref; ui.editor.dispatchEvent(new Event('input')); ui.run(); } }, 'Load and run it'),
+    h('button.btn.sm', { onClick: () => { const ui = sqlBench(); ui.editor.value = q.ref; ui.editor.dispatchEvent(new Event('input')); ui.showTab('exec'); ui.run(); } }, 'Load and run it'),
     h('p.small.muted', {}, `Expected result: ${q.sig.rows.toLocaleString('en-US')} row(s) × ${q.sig.cols} column(s). Other correct queries are accepted – the check compares results, not SQL text.`),
     q.explain ? h('p.small', {}, q.explain) : null);
 }

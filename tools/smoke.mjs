@@ -21,10 +21,10 @@ await p.click('text=Show solution'); await p.click('text=Insert formula in Work 
 // SQL question P07
 await p.goto(B + '#/q/P07'); await p.waitForSelector('.editor'); await p.waitForSelector('.schema details', { timeout: 120000 }); await shot('06-sql-loaded');
 await p.fill('.editor', "SELECT SUM(CASE WHEN Amount >= 500 THEN Amount * 0.0075 ELSE Amount * 0.005 END) FROM pcards WHERE Year = 2014 AND Vendor = 'Amazon.com' AND Amount > 0");
-await p.click('text=▶ Run'); await p.waitForSelector('.results table'); await p.click('text=Check my result'); await p.waitForSelector('.feedback.bad', { timeout: 60000 });
+await p.click('text=▶ Execute'); await p.waitForSelector('.results table'); await p.click('text=Check my result'); await p.waitForSelector('.feedback.bad', { timeout: 60000 });
 console.log('sql diag:', (await p.textContent('.feedback')).slice(0, 220)); await shot('07-sql-wrong');
 await p.fill('.editor', "SELECT ROUND(SUM(CASE WHEN Amount >= 500 THEN Amount * 0.0075 ELSE Amount * 0.005 END),2) AS e FROM pcards WHERE Year = 2014 AND Vendor LIKE 'amazon.com' AND Amount > 0");
-await p.click('text=▶ Run'); await p.waitForTimeout(1500); await p.click('text=Check my result'); await p.waitForSelector('.feedback.ok', { timeout: 60000 }); console.log('sql ok:', (await p.textContent('.feedback')).slice(0, 80));
+await p.click('text=▶ Execute'); await p.waitForTimeout(1500); await p.click('text=Check my result'); await p.waitForSelector('.feedback.ok', { timeout: 60000 }); console.log('sql ok:', (await p.textContent('.feedback')).slice(0, 80));
 // interpretation
 await p.goto(B + '#/interp/REST-L'); await p.waitForSelector('.regtable'); await shot('08-interp');
 await p.goto(B + '#/progress'); await p.waitForSelector('.kpis'); await shot('09-progress');

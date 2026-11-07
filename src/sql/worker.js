@@ -36,13 +36,29 @@ self.onmessage = async (e) => {
       const schema = tables.map((t) => ({ name: t, cols: db.exec(`PRAGMA table_info("${t}")`)[0].values.map((r) => ({ name: r[1], type: r[2] })), rows: db.exec(`SELECT COUNT(*) FROM "${t}"`)[0].values[0][0] }));
       self.postMessage({ id, type: 'done', schema, bytes: e.data.wantBytes ? bytes : undefined });
     } else if (type === 'exec') {
+      // Like DB Browser's "Execute all": run every statement, show the last one that returns rows.
       const t0 = performance.now();
+      let columns = []; let values = []; let n = 0; let changes = 0;
+      for (const stmt of db.iterateStatements(e.data.sql)) {
+        n++;
+        try {
+          const cols = stmt.getColumnNames();
+          if (cols.length) { const rows = []; while (stmt.step()) rows.push(stmt.get()); columns = cols; values = rows; }
+          else { while (stmt.step()) { /* run */ } changes += db.getRowsModified(); }
+        } catch (err) {
+          throw new Error(n > 1 ? `Statement ${n}: ${err.message || err}` : String(err.message || err));
+        } finally { stmt.free(); }
+      }
+      self.postMessage({ id, type: 'done', columns, values, statements: n, changes, ms: Math.round(performance.now() - t0) });
+    } else if (type === 'query') {
+      // one statement with bound parameters (used by Browse Data / Database Structure)
       const stmt = db.prepare(e.data.sql);
-      const columns = stmt.getColumnNames();
-      const values = [];
-      while (stmt.step()) values.push(stmt.get());
-      stmt.free();
-      self.postMessage({ id, type: 'done', columns, values, ms: Math.round(performance.now() - t0) });
+      try {
+        if (e.data.params) stmt.bind(e.data.params);
+        const columns = stmt.getColumnNames(); const values = [];
+        while (stmt.step()) values.push(stmt.get());
+        self.postMessage({ id, type: 'done', columns, values });
+      } finally { stmt.free(); }
     }
   } catch (err) {
     self.postMessage({ id, type: 'error', message: String(err.message || err) });

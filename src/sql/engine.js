@@ -41,7 +41,16 @@ export async function openDb(name, onProgress) {
 
 let queue = Promise.resolve();
 export function exec(sql) {
-  const run = () => call({ type: 'exec', sql });
+  // wait for a database that is still downloading, so the query never hits the previous one
+  const run = () => (opening?.promise ?? Promise.resolve()).catch(() => {}).then(() => call({ type: 'exec', sql }));
+  const p = queue.then(run, run);
+  queue = p.catch(() => {});
+  return p;
+}
+
+/** One statement with bound parameters – for the browser tabs; never touches the answer check. */
+export function query(sql, params) {
+  const run = () => (opening?.promise ?? Promise.resolve()).catch(() => {}).then(() => call({ type: 'query', sql, params }));
   const p = queue.then(run, run);
   queue = p.catch(() => {});
   return p;
